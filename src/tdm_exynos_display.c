@@ -478,12 +478,12 @@ _tdm_exynos_display_events_handle(int fd, Drm_Event_Context *evctx)
 static tdm_error
 _tdm_exynos_display_create_layer_list_type(tdm_exynos_data *exynos_data)
 {
-    tdm_exynos_output_data *output_data;
     tdm_error ret;
     int i;
 
     for (i = 0; i < exynos_data->plane_res->count_planes; i++)
     {
+        tdm_exynos_output_data *output_data;
         tdm_exynos_layer_data *layer_data;
         drmModePlanePtr plane;
         int type = 0;
@@ -568,12 +568,12 @@ _tdm_exynos_display_create_layer_list_type(tdm_exynos_data *exynos_data)
 static tdm_error
 _tdm_exynos_display_create_layer_list_immutable_zpos(tdm_exynos_data *exynos_data)
 {
-    tdm_exynos_output_data *output_data;
     tdm_error ret;
     int i;
 
     for (i = 0; i < exynos_data->plane_res->count_planes; i++)
     {
+        tdm_exynos_output_data *output_data;
         tdm_exynos_layer_data *layer_data;
         drmModePlanePtr plane;
         int type = 0, zpos = 0;
@@ -661,11 +661,11 @@ _tdm_exynos_display_create_layer_list_immutable_zpos(tdm_exynos_data *exynos_dat
 static tdm_error
 _tdm_exynos_display_create_layer_list_not_fixed(tdm_exynos_data *exynos_data)
 {
-    tdm_exynos_output_data *output_data;
     int i;
 
     for (i = 0; i < exynos_data->plane_res->count_planes; i++)
     {
+        tdm_exynos_output_data *output_data;
         tdm_exynos_layer_data *layer_data;
         drmModePlanePtr plane;
 
@@ -700,6 +700,13 @@ _tdm_exynos_display_create_layer_list_not_fixed(tdm_exynos_data *exynos_data)
                 break;
             else if (output_data->pipe == 2)
                 break;
+            else
+            {
+                TDM_INFO("need no more planes. (pipe=%d, i=%d)", output_data->pipe, i);
+                drmModeFreePlane(plane);
+                free(layer_data);
+                return TDM_ERROR_NONE;
+            }
         }
 
         if (!output_data)
@@ -1212,7 +1219,7 @@ exynos_output_get_layers(tdm_output *output,  int *count, tdm_error *error)
     if (error)
         *error = TDM_ERROR_NONE;
 
-    return TDM_ERROR_NONE;
+    return layers;
 failed_get:
     if (error)
         *error = ret;
