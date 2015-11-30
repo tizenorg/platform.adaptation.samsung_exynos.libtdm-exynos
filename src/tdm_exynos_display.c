@@ -389,8 +389,6 @@ _tdm_exynos_display_cb_vblank(int fd, unsigned int sequence,
     default:
         return;
     }
-
-    printf ("@@@ %s(%d)\n", __FUNCTION__, __LINE__);
 }
 
 static void
@@ -398,7 +396,6 @@ _tdm_exynos_display_cb_pp(int fd, unsigned int prop_id, unsigned int *buf_idx,
                           unsigned int tv_sec, unsigned int tv_usec,
                           void *user_data)
 {
-    printf ("@@@ %s(%d)\n", __FUNCTION__, __LINE__);
     tdm_exynos_pp_handler(prop_id, buf_idx, tv_sec, tv_usec, user_data);
 }
 
@@ -693,7 +690,6 @@ _tdm_exynos_display_create_layer_list_not_fixed(tdm_exynos_data *exynos_data)
          */
         LIST_FOR_EACH_ENTRY(output_data, &exynos_data->output_list, link)
         {
-            printf("@@@ %s(%d) output_data(%p) connecotr_id(%d)\n", __FUNCTION__, __LINE__, output_data, output_data->connector_id);
             if (output_data->pipe == 0 && i < 2)
                 break;
             else if (output_data->pipe == 1 && i < 4)
