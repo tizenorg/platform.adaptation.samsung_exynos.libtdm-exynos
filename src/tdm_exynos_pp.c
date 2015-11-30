@@ -261,7 +261,7 @@ tdm_exynos_pp_handler(unsigned int prop_id, unsigned int *buf_idx,
 
     if (!pp_data->first_event)
     {
-        TDM_INFO("pp(%p) got a first event. ", pp_data);
+        TDM_DBG("pp(%p) got a first event. ", pp_data);
         pp_data->first_event = 1;
     }
 

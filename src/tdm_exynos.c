@@ -103,9 +103,9 @@ _tdm_exynos_open_drm(void)
                 if (strcmp(udev_device_get_sysname(device_parent), "exynos-drm") == 0)
                 {
                     drm_device = device;
-                    TDM_INFO("Found drm device: '%s' (%s)\n",
-                             udev_device_get_syspath(drm_device),
-                             udev_device_get_sysname(device_parent));
+                    TDM_DBG("Found drm device: '%s' (%s)\n",
+                            udev_device_get_syspath(drm_device),
+                            udev_device_get_sysname(device_parent));
                     break;
                 }
             }
@@ -245,10 +245,10 @@ tdm_exynos_init(tdm_display *dpy, tdm_error *error)
     {
         exynos_data->has_zpos_info = 1;
         if (exynos_data->is_immutable_zpos)
-            TDM_INFO("plane has immutable zpos info");
+            TDM_DBG("plane has immutable zpos info");
     }
     else
-        TDM_INFO("plane doesn't have zpos info");
+        TDM_DBG("plane doesn't have zpos info");
 
     ret = tdm_exynos_display_create_output_list(exynos_data);
     if (ret != TDM_ERROR_NONE)

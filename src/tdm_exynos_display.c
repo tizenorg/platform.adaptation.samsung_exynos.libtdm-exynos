@@ -698,7 +698,7 @@ _tdm_exynos_display_create_layer_list_not_fixed(tdm_exynos_data *exynos_data)
                 break;
             else
             {
-                TDM_INFO("need no more planes. (pipe=%d, i=%d)", output_data->pipe, i);
+                TDM_DBG("need no more planes. (pipe=%d, i=%d)", output_data->pipe, i);
                 drmModeFreePlane(plane);
                 free(layer_data);
                 return TDM_ERROR_NONE;
@@ -973,7 +973,7 @@ tdm_exynos_display_get_plane_prop_info(tdm_exynos_data *exynos_data, int plane_i
         drmModeFreeProperty(prop);
     }
     drmModeFreeObjectProperties(props);
-    TDM_INFO("coundn't find '%s' property", name);
+    TDM_DBG("coundn't find '%s' property", name);
     return TDM_ERROR_OPERATION_FAILED;
 }
 
