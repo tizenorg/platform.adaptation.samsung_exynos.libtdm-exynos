@@ -9,7 +9,7 @@
 #include "tdm_exynos.h"
 #include <tdm_helper.h>
 
-#define EXYNOS_DRM_NAME "i915"
+#define EXYNOS_DRM_NAME "exynos"
 
 static tdm_func_display exynos_func_display =
 {
