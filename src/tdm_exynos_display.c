@@ -554,7 +554,7 @@ _tdm_exynos_display_create_layer_list_type(tdm_exynos_data *exynos_data)
                 layer_data, layer_data->plane_id, layer_data->output_data->crtc_id,
                 layer_data->zpos, layer_data->capabilities);
 
-        LIST_ADD(&layer_data->link, &output_data->layer_list);
+        LIST_ADDTAIL(&layer_data->link, &output_data->layer_list);
 
         drmModeFreePlane(plane);
     }
@@ -647,7 +647,7 @@ _tdm_exynos_display_create_layer_list_immutable_zpos(tdm_exynos_data *exynos_dat
                 layer_data, layer_data->plane_id, layer_data->output_data->crtc_id,
                 layer_data->zpos, layer_data->capabilities);
 
-        LIST_ADD(&layer_data->link, &output_data->layer_list);
+        LIST_ADDTAIL(&layer_data->link, &output_data->layer_list);
 
         drmModeFreePlane(plane);
     }
@@ -732,7 +732,7 @@ _tdm_exynos_display_create_layer_list_not_fixed(tdm_exynos_data *exynos_data)
                 layer_data, layer_data->plane_id, layer_data->output_data->crtc_id,
                 layer_data->zpos, layer_data->capabilities);
 
-        LIST_ADD(&layer_data->link, &output_data->layer_list);
+        LIST_ADDTAIL(&layer_data->link, &output_data->layer_list);
 
         drmModeFreePlane(plane);
     }
@@ -923,7 +923,7 @@ tdm_exynos_display_create_output_list(tdm_exynos_data *exynos_data)
             _tdm_exynos_display_to_tdm_mode(&output_data->drm_modes[i], &output_data->output_modes[i]);
         }
 
-        LIST_ADD(&output_data->link, &exynos_data->output_list);
+        LIST_ADDTAIL(&output_data->link, &exynos_data->output_list);
 
         TDM_DBG("output_data(%p) connector_id(%d:%d:%d-%d) encoder_id(%d) crtc_id(%d) pipe(%d) dpms_id(%d)",
                 output_data, output_data->connector_id, output_data->status, output_data->connector_type,
@@ -1672,7 +1672,7 @@ exynos_layer_set_buffer(tdm_layer *layer, tbm_surface_h buffer)
             return TDM_ERROR_OUT_OF_MEMORY;
         }
 
-        LIST_ADD(&display_buffer->link, &exynos_data->buffer_list);
+        LIST_ADDTAIL(&display_buffer->link, &exynos_data->buffer_list);
     }
 
     if (display_buffer->fb_id == 0)

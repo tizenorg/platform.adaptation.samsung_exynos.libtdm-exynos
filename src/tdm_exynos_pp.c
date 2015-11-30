@@ -449,7 +449,7 @@ exynos_pp_attach(tdm_pp *pp, tbm_surface_h src, tbm_surface_h dst)
         return TDM_ERROR_NONE;
     }
 
-    LIST_ADD(&buffer->link, &pp_data->pending_buffer_list);
+    LIST_ADDTAIL(&buffer->link, &pp_data->pending_buffer_list);
     buffer->index = _get_index(pp_data);
     buffer->src = src;
     buffer->src = dst;
@@ -481,7 +481,7 @@ exynos_pp_commit(tdm_pp *pp)
         LIST_DEL(&b->link);
         _tdm_exynos_pp_queue(pp_data, b, IPP_BUF_ENQUEUE);
         TDM_DBG("queued: %d", b->index);
-        LIST_ADD(&b->link, &pp_data->buffer_list);
+        LIST_ADDTAIL(&b->link, &pp_data->buffer_list);
     }
 
     if (pp_data->info_changed)
