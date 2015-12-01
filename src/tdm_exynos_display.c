@@ -978,11 +978,12 @@ tdm_exynos_display_get_plane_prop_info(tdm_exynos_data *exynos_data, int plane_i
 }
 
 tdm_error
-exynos_display_get_capabilitiy(tdm_backend_data *bdata, tdm_display_capability *capabilities)
+exynos_display_get_capabilitiy(tdm_backend_data *bdata, tdm_caps_display *caps)
 {
-    RETURN_VAL_IF_FAIL(capabilities, TDM_ERROR_INVALID_PARAMETER);
+    RETURN_VAL_IF_FAIL(caps, TDM_ERROR_INVALID_PARAMETER);
 
-    *capabilities = TDM_DISPLAY_CAPABILITY_PP; /* | TDM_DISPLAY_CAPABILITY_CAPTURE; */
+    caps->capabilities = TDM_DISPLAY_CAPABILITY_PP; /* | TDM_DISPLAY_CAPABILITY_CAPTURE; */
+    caps->max_layer_count = -1; /* not defined */
 
     return TDM_ERROR_NONE;
 }
