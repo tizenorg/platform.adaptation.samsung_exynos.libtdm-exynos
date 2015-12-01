@@ -907,7 +907,7 @@ tdm_exynos_display_create_output_list(tdm_exynos_data *exynos_data)
             goto failed_create;
         }
         output_data->output_modes = calloc(connector->count_modes, sizeof(tdm_output_mode));
-        if (!output_data->drm_modes)
+        if (!output_data->output_modes)
         {
             TDM_ERR("alloc failed");
             free(output_data);
@@ -919,8 +919,8 @@ tdm_exynos_display_create_output_list(tdm_exynos_data *exynos_data)
         }
         for (j = 0; j < connector->count_modes; j++)
         {
-            output_data->drm_modes[i] = connector->modes[i];
-            _tdm_exynos_display_to_tdm_mode(&output_data->drm_modes[i], &output_data->output_modes[i]);
+            output_data->drm_modes[j] = connector->modes[j];
+            _tdm_exynos_display_to_tdm_mode(&output_data->drm_modes[j], &output_data->output_modes[j]);
         }
 
         LIST_ADDTAIL(&output_data->link, &exynos_data->output_list);
