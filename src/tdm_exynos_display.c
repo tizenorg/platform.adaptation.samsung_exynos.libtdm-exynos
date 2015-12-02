@@ -690,12 +690,12 @@ _tdm_exynos_display_create_layer_list_not_fixed(tdm_exynos_data *exynos_data)
         }
 
         /* TODO
-               * Currently, kernel doesn give us the correct device infomation.
-               * Primary connector type is invalid. plane's count is not correct.
-               * So we need to fix all of them with kernel.
-               * Temporarily we dedicate only 2 plane to each output.
-               * First plane is primary layer. Second plane's zpos is 1.
-               */
+         * Currently, kernel doesn give us the correct device infomation.
+         * Primary connector type is invalid. plane's count is not correct.
+         * So we need to fix all of them with kernel.
+         * Temporarily we dedicate only 2 plane to each output.
+         * First plane is primary layer. Second plane's zpos is 1.
+         */
         if (i % LAYER_COUNT_PER_OUTPUT == 0)
             find_pipe++;
 
