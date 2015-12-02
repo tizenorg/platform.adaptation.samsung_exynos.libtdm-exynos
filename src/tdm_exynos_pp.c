@@ -129,7 +129,7 @@ _tdm_exynos_pp_set(tdm_exynos_pp_data *pp_data)
             property.config[1].sz.hsize, property.config[1].sz.vsize,
             property.config[1].pos.x, property.config[1].pos.y, property.config[1].pos.w, property.config[1].pos.h);
 
-    ret = ioctl(exynos_data->drm_fd, DRM_IOCTL_EXYNOS_IPP_SET_PROPERTY, property);
+    ret = ioctl(exynos_data->drm_fd, DRM_IOCTL_EXYNOS_IPP_SET_PROPERTY, &property);
     if (ret)
     {
         TDM_ERR("failed: %m");
@@ -165,7 +165,7 @@ _tdm_exynos_pp_queue(tdm_exynos_pp_data *pp_data, tdm_exynos_pp_buffer *buffer, 
             buf.prop_id, buf.ops_id, buf.buf_type, buf.buf_id,
             buf.handle[0], buf.handle[1], buf.handle[2]);
 
-    ret = ioctl(exynos_data->drm_fd, DRM_IOCTL_EXYNOS_IPP_QUEUE_BUF, buf);
+    ret = ioctl(exynos_data->drm_fd, DRM_IOCTL_EXYNOS_IPP_QUEUE_BUF, &buf);
     if (ret)
     {
         TDM_ERR("src failed. prop_id(%d) op(%d) buf(%d) id(%d). %m",
@@ -190,7 +190,7 @@ _tdm_exynos_pp_queue(tdm_exynos_pp_data *pp_data, tdm_exynos_pp_buffer *buffer, 
             buf.prop_id, buf.ops_id, buf.buf_type, buf.buf_id,
             buf.handle[0], buf.handle[1], buf.handle[2]);
 
-    ret = ioctl(exynos_data->drm_fd, DRM_IOCTL_EXYNOS_IPP_QUEUE_BUF, buf);
+    ret = ioctl(exynos_data->drm_fd, DRM_IOCTL_EXYNOS_IPP_QUEUE_BUF, &buf);
     if (ret)
     {
         TDM_ERR("dst failed. prop_id(%d) op(%d) buf(%d) id(%d). %m",
@@ -215,7 +215,7 @@ _tdm_exynos_pp_cmd(tdm_exynos_pp_data *pp_data, enum drm_exynos_ipp_ctrl cmd)
 
     TDM_DBG("prop_id(%d) ctrl(%d). ", ctrl.prop_id, ctrl.ctrl);
 
-    ret = ioctl(exynos_data->drm_fd, DRM_IOCTL_EXYNOS_IPP_CMD_CTRL, ctrl);
+    ret = ioctl(exynos_data->drm_fd, DRM_IOCTL_EXYNOS_IPP_CMD_CTRL, &ctrl);
     if (ret)
     {
         TDM_ERR("failed. prop_id(%d) ctrl(%d). %m", ctrl.prop_id, ctrl.ctrl);
