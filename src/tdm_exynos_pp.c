@@ -97,7 +97,7 @@ _get_index(tdm_exynos_pp_data *pp_data)
     return ret;
 }
 
-static int
+static tdm_error
 _tdm_exynos_pp_set(tdm_exynos_pp_data *pp_data)
 {
     tdm_exynos_data *exynos_data = pp_data->exynos_data;
@@ -137,8 +137,8 @@ _tdm_exynos_pp_set(tdm_exynos_pp_data *pp_data)
     }
 
     TDM_DBG("success. prop_id(%d) ", property.prop_id);
-
-    return property.prop_id;
+    pp_data->prop_id = property.prop_id;
+    return TDM_ERROR_NONE;
 }
 
 static tdm_error
