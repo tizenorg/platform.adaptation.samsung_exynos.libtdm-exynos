@@ -2,6 +2,7 @@
 #include "config.h"
 #endif
 
+#include <drm_fourcc.h>
 #include "tdm_exynos.h"
 
 #define MIN_WIDTH   32
@@ -1524,7 +1525,12 @@ exynos_layer_get_capability(tdm_layer *layer, tdm_caps_layer *caps)
     }
 
     for (i = 0; i < caps->format_count; i++)
-        caps->formats[i] = plane->formats[i];
+    {
+        /* TODO: kernel reports wrong formats */
+        if (plane->formats[i] != DRM_FORMAT_XRGB8888 && plane->formats[i] != DRM_FORMAT_ARGB8888)
+           continue;
+        caps->formats[i] = tdm_exynos_format_to_tbm_format(plane->formats[i]);
+    }
 
     props = drmModeObjectGetProperties(exynos_data->drm_fd, layer_data->plane_id, DRM_MODE_OBJECT_PLANE);
     if (!props)
