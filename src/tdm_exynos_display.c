@@ -5,6 +5,8 @@
 #include "tdm_exynos.h"
 
 #define MIN_WIDTH   32
+#define LAYER_COUNT_PER_OUTPUT   2
+
 
 typedef struct _tdm_exynos_output_data tdm_exynos_output_data;
 typedef struct _tdm_exynos_layer_data tdm_exynos_layer_data;
@@ -658,7 +660,13 @@ _tdm_exynos_display_create_layer_list_immutable_zpos(tdm_exynos_data *exynos_dat
 static tdm_error
 _tdm_exynos_display_create_layer_list_not_fixed(tdm_exynos_data *exynos_data)
 {
-    int i;
+    int i, find_pipe = -1;
+
+    if (exynos_data->mode_res->count_connectors * LAYER_COUNT_PER_OUTPUT > exynos_data->plane_res->count_planes)
+    {
+        TDM_ERR("not enough layers");
+        return TDM_ERROR_OPERATION_FAILED;
+    }
 
     for (i = 0; i < exynos_data->plane_res->count_planes; i++)
     {
@@ -682,35 +690,27 @@ _tdm_exynos_display_create_layer_list_not_fixed(tdm_exynos_data *exynos_data)
         }
 
         /* TODO
-         * Currently, kernel doesn give us the correct device infomation.
-         * Primary connector type is invalid. plane's count is not correct.
-         * So we need to fix all of them with kernel.
-         * Temporarily we dedicate only 2 plane to each output.
-         * First plane is primary layer. Second plane's zpos is 1.
-         */
+               * Currently, kernel doesn give us the correct device infomation.
+               * Primary connector type is invalid. plane's count is not correct.
+               * So we need to fix all of them with kernel.
+               * Temporarily we dedicate only 2 plane to each output.
+               * First plane is primary layer. Second plane's zpos is 1.
+               */
+        if (i % LAYER_COUNT_PER_OUTPUT == 0)
+            find_pipe++;
+
         LIST_FOR_EACH_ENTRY(output_data, &exynos_data->output_list, link)
         {
-            if (output_data->pipe == 0 && i < 2)
+            if (output_data->pipe == find_pipe)
                 break;
-            else if (output_data->pipe == 1 && i < 4)
-                break;
-            else if (output_data->pipe == 2)
-                break;
-            else
-            {
-                TDM_DBG("need no more planes. (pipe=%d, i=%d)", output_data->pipe, i);
-                drmModeFreePlane(plane);
-                free(layer_data);
-                return TDM_ERROR_NONE;
-            }
         }
 
-        if (!output_data)
+        if (i == exynos_data->mode_res->count_connectors * LAYER_COUNT_PER_OUTPUT)
         {
-            TDM_ERR("plane(%d) couldn't found proper output", plane->plane_id);
+            TDM_DBG("no more plane(%d) need for outputs", plane->plane_id);
             drmModeFreePlane(plane);
             free(layer_data);
-            continue;
+            return TDM_ERROR_NONE;
         }
 
         layer_data->exynos_data = exynos_data;
