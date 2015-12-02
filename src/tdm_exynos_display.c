@@ -982,7 +982,6 @@ exynos_display_get_capabilitiy(tdm_backend_data *bdata, tdm_caps_display *caps)
 {
     RETURN_VAL_IF_FAIL(caps, TDM_ERROR_INVALID_PARAMETER);
 
-    caps->capabilities = TDM_DISPLAY_CAPABILITY_PP; /* | TDM_DISPLAY_CAPABILITY_CAPTURE; */
     caps->max_layer_count = -1; /* not defined */
 
     return TDM_ERROR_NONE;
