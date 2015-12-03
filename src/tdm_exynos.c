@@ -221,7 +221,7 @@ tdm_exynos_init(tdm_display *dpy, tdm_error *error)
     exynos_data->drm_fd = -1;
     if (tdm_helper_drm_fd >= 0)
     {
-        exynos_data->drm_fd = dup(tdm_helper_drm_fd);
+        exynos_data->drm_fd = tdm_helper_drm_fd;
         drmAddUserHandler(tdm_helper_drm_fd, _tdm_exynos_drm_user_handler);
     }
 
