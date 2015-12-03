@@ -452,7 +452,7 @@ exynos_pp_attach(tdm_pp *pp, tbm_surface_h src, tbm_surface_h dst)
     LIST_ADDTAIL(&buffer->link, &pp_data->pending_buffer_list);
     buffer->index = _get_index(pp_data);
     buffer->src = src;
-    buffer->src = dst;
+    buffer->dst = dst;
 
     return TDM_ERROR_NONE;
 }
