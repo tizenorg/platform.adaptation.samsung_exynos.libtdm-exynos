@@ -3,6 +3,7 @@
 #endif
 
 #include <drm_fourcc.h>
+#include <tdm_helper.h>
 #include "tdm_exynos.h"
 
 #define MIN_WIDTH   32
@@ -1378,7 +1379,7 @@ exynos_output_commit(tdm_output *output, int sync, void *user_data)
         }
     }
 
-    if (do_wait_vblank)
+    if (do_wait_vblank && tdm_helper_drm_fd == -1)
     {
         tdm_exynos_vblank_data *vblank_data = calloc(1, sizeof(tdm_exynos_vblank_data));
         uint target_msc;
