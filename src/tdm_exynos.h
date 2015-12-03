@@ -117,8 +117,12 @@ tbm_format   tdm_exynos_format_to_tbm_format(uint32_t format);
 tdm_error    tdm_exynos_display_create_output_list(tdm_exynos_data *exynos_data);
 void         tdm_exynos_display_destroy_output_list(tdm_exynos_data *exynos_data);
 tdm_error    tdm_exynos_display_create_layer_list(tdm_exynos_data *exynos_data);
-tdm_error    tdm_exynos_display_get_plane_prop_info(tdm_exynos_data *exynos_data, int plane_id,
-                                                    const char *name, int *value, int *is_immutable);
+tdm_error    tdm_exynos_display_set_property(tdm_exynos_data *exynos_data,
+                                             unsigned int obj_id, unsigned int obj_type,
+                                             const char *name, unsigned int value);
+tdm_error    tdm_exynos_display_get_property(tdm_exynos_data *exynos_data,
+                                             unsigned int obj_id, unsigned int obj_type,
+                                             const char *name, unsigned int *value, int *is_immutable);
 
 tdm_error    tdm_exynos_pp_get_capability(tdm_exynos_data *exynos_data, tdm_caps_pp *caps);
 tdm_pp*      tdm_exynos_pp_create(tdm_exynos_data *exynos_data, tdm_error *error);

@@ -505,7 +505,7 @@ _tdm_exynos_display_create_layer_list_type(tdm_exynos_data *exynos_data)
         tdm_exynos_output_data *output_data;
         tdm_exynos_layer_data *layer_data;
         drmModePlanePtr plane;
-        int type = 0;
+        unsigned int type = 0;
 
         plane = drmModeGetPlane(exynos_data->drm_fd, exynos_data->plane_res->planes[i]);
         if (!plane)
@@ -514,8 +514,8 @@ _tdm_exynos_display_create_layer_list_type(tdm_exynos_data *exynos_data)
             continue;
         }
 
-        ret = tdm_exynos_display_get_plane_prop_info(exynos_data, exynos_data->plane_res->planes[i],
-                                                     "type", &type, NULL);
+        ret = tdm_exynos_display_get_property(exynos_data, exynos_data->plane_res->planes[i],
+                                              DRM_MODE_OBJECT_PLANE, "type", &type, NULL);
         if (ret != TDM_ERROR_NONE)
         {
             TDM_ERR("plane(%d) doesn't have 'type' info", exynos_data->plane_res->planes[i]);
@@ -595,7 +595,7 @@ _tdm_exynos_display_create_layer_list_immutable_zpos(tdm_exynos_data *exynos_dat
         tdm_exynos_output_data *output_data;
         tdm_exynos_layer_data *layer_data;
         drmModePlanePtr plane;
-        int type = 0, zpos = 0;
+        unsigned int type = 0, zpos = 0;
 
         plane = drmModeGetPlane(exynos_data->drm_fd, exynos_data->plane_res->planes[i]);
         if (!plane)
@@ -604,8 +604,8 @@ _tdm_exynos_display_create_layer_list_immutable_zpos(tdm_exynos_data *exynos_dat
             continue;
         }
 
-        ret = tdm_exynos_display_get_plane_prop_info(exynos_data, exynos_data->plane_res->planes[i],
-                                                     "type", &type, NULL);
+        ret = tdm_exynos_display_get_property(exynos_data, exynos_data->plane_res->planes[i],
+                                              DRM_MODE_OBJECT_PLANE, "type", &type, NULL);
         if (ret != TDM_ERROR_NONE)
         {
             TDM_ERR("plane(%d) doesn't have 'type' info", exynos_data->plane_res->planes[i]);
@@ -613,8 +613,8 @@ _tdm_exynos_display_create_layer_list_immutable_zpos(tdm_exynos_data *exynos_dat
             continue;
         }
 
-        ret = tdm_exynos_display_get_plane_prop_info(exynos_data, exynos_data->plane_res->planes[i],
-                                                     "zpos", &zpos, NULL);
+        ret = tdm_exynos_display_get_property(exynos_data, exynos_data->plane_res->planes[i],
+                                              DRM_MODE_OBJECT_PLANE, "zpos", &zpos, NULL);
         if (ret != TDM_ERROR_NONE)
         {
             TDM_ERR("plane(%d) doesn't have 'zpos' info", exynos_data->plane_res->planes[i]);
@@ -745,7 +745,18 @@ _tdm_exynos_display_create_layer_list_not_fixed(tdm_exynos_data *exynos_data)
         }
         else
         {
+            tdm_error ret;
+
             layer_data->capabilities = TDM_LAYER_CAPABILITY_OVERLAY | TDM_LAYER_CAPABILITY_GRAPHIC;
+
+            ret = tdm_exynos_display_set_property(exynos_data, layer_data->plane_id,
+                                                  DRM_MODE_OBJECT_PLANE, "zpos", layer_data->zpos);
+            if (ret != TDM_ERROR_NONE)
+            {
+                drmModeFreePlane(plane);
+                free(layer_data);
+                return TDM_ERROR_OPERATION_FAILED;
+            }
         }
 
         TDM_DBG("layer_data(%p) plane_id(%d) crtc_id(%d) zpos(%d) capabilities(%x)",
@@ -963,12 +974,61 @@ failed_create:
 }
 
 tdm_error
-tdm_exynos_display_get_plane_prop_info(tdm_exynos_data *exynos_data, int plane_id, const char *name, int *value, int *is_immutable)
+tdm_exynos_display_set_property(tdm_exynos_data *exynos_data,
+                                unsigned int obj_id, unsigned int obj_type,
+                                const char *name, unsigned int value)
+{
+    drmModeObjectPropertiesPtr props = NULL;
+    unsigned int i;
+
+    props = drmModeObjectGetProperties(exynos_data->drm_fd, obj_id, obj_type);
+    if (!props)
+    {
+        TDM_ERR("drmModeObjectGetProperties failed: %m");
+        return TDM_ERROR_OPERATION_FAILED;
+    }
+    for (i = 0; i < props->count_props; i++)
+    {
+        drmModePropertyPtr prop = drmModeGetProperty(exynos_data->drm_fd, props->props[i]);
+        int ret;
+        if (!prop)
+        {
+            TDM_ERR("drmModeGetProperty failed: %m");
+            drmModeFreeObjectProperties(props);
+            return TDM_ERROR_OPERATION_FAILED;
+        }
+        if (!strcmp(prop->name, name))
+        {
+            ret = drmModeObjectSetProperty(exynos_data->drm_fd, obj_id, obj_type, prop->prop_id, value);
+            if (ret < 0)
+            {
+                TDM_ERR("drmModeObjectSetProperty failed: %m");
+                drmModeFreeProperty(prop);
+                drmModeFreeObjectProperties(props);
+                return TDM_ERROR_OPERATION_FAILED;
+            }
+            drmModeFreeProperty(prop);
+            drmModeFreeObjectProperties(props);
+            return TDM_ERROR_NONE;
+        }
+        drmModeFreeProperty(prop);
+    }
+
+    TDM_ERR("not found '%s' property", name);
+
+    drmModeFreeObjectProperties(props);
+    return TDM_ERROR_OPERATION_FAILED;
+}
+
+tdm_error
+tdm_exynos_display_get_property(tdm_exynos_data *exynos_data,
+                                unsigned int obj_id, unsigned int obj_type,
+                                const char *name, unsigned int *value, int *is_immutable)
 {
     drmModeObjectPropertiesPtr props = NULL;
     int i;
 
-    props = drmModeObjectGetProperties(exynos_data->drm_fd, plane_id, DRM_MODE_OBJECT_PLANE);
+    props = drmModeObjectGetProperties(exynos_data->drm_fd, obj_id, obj_type);
     if (!props)
         return TDM_ERROR_OPERATION_FAILED;
 
@@ -984,7 +1044,7 @@ tdm_exynos_display_get_plane_prop_info(tdm_exynos_data *exynos_data, int plane_i
             if (is_immutable)
                 *is_immutable = prop->flags & DRM_MODE_PROP_IMMUTABLE;
             if (value)
-                *value = (uint)props->prop_values[i];
+                *value = (unsigned int)props->prop_values[i];
             drmModeFreeProperty(prop);
             drmModeFreeObjectProperties(props);
             return TDM_ERROR_NONE;

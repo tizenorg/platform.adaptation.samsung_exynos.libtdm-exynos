@@ -260,8 +260,9 @@ tdm_exynos_init(tdm_display *dpy, tdm_error *error)
         goto failed;
     }
 
-    ret = tdm_exynos_display_get_plane_prop_info(exynos_data, exynos_data->plane_res->planes[0],
-            "zpos", NULL, &exynos_data->is_immutable_zpos);
+    ret = tdm_exynos_display_get_property(exynos_data, exynos_data->plane_res->planes[0],
+                                          DRM_MODE_OBJECT_PLANE, "zpos", NULL,
+                                          &exynos_data->is_immutable_zpos);
     if (ret == TDM_ERROR_NONE)
     {
         exynos_data->has_zpos_info = 1;
