@@ -136,6 +136,22 @@ close_l:
     return fd;
 }
 
+static int
+_tdm_exynos_drm_user_handler(struct drm_event *event)
+{
+    struct drm_exynos_ipp_event *ipp;
+
+    if (event->type != DRM_EXYNOS_IPP_EVENT)
+        return -1;
+
+    ipp = (struct drm_exynos_ipp_event *)event;
+
+    tdm_exynos_pp_handler(ipp->prop_id, ipp->buf_id, ipp->tv_sec, ipp->tv_usec,
+                          (void *)(unsigned long)ipp->user_data);
+
+    return 0;
+}
+
 void
 tdm_exynos_deinit(tdm_backend_data *bdata)
 {
@@ -143,6 +159,8 @@ tdm_exynos_deinit(tdm_backend_data *bdata)
         return;
 
     TDM_INFO("deinit");
+
+    drmRemoveUserHandler(tdm_helper_drm_fd, _tdm_exynos_drm_user_handler);
 
     tdm_exynos_display_destroy_output_list(exynos_data);
 
@@ -202,7 +220,10 @@ tdm_exynos_init(tdm_display *dpy, tdm_error *error)
 
     exynos_data->drm_fd = -1;
     if (tdm_helper_drm_fd >= 0)
+    {
         exynos_data->drm_fd = dup(tdm_helper_drm_fd);
+        drmAddUserHandler(tdm_helper_drm_fd, _tdm_exynos_drm_user_handler);
+    }
 
     if (exynos_data->drm_fd < 0)
         exynos_data->drm_fd = _tdm_exynos_open_drm();
