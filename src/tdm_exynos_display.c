@@ -240,7 +240,7 @@ _tdm_exynos_display_commit_primary_layer(tdm_exynos_layer_data *layer_data)
     tdm_exynos_data *exynos_data = layer_data->exynos_data;
     tdm_exynos_output_data *output_data = layer_data->output_data;
 
-    if (output_data->mode_changed)
+    if (output_data->mode_changed && layer_data->display_buffer_changed)
     {
         drmModeModeInfoPtr mode;
 
@@ -268,25 +268,30 @@ _tdm_exynos_display_commit_primary_layer(tdm_exynos_layer_data *layer_data)
             TDM_ERR("set crtc failed: %m");
             return TDM_ERROR_OPERATION_FAILED;
         }
-    }
 
-    if (!layer_data->display_buffer)
-    {
-        if (drmModeSetCrtc(exynos_data->drm_fd, output_data->crtc_id,
-                           0, 0, 0, NULL, 0, NULL))
-        {
-            TDM_ERR("unset crtc failed: %m");
-            return TDM_ERROR_OPERATION_FAILED;
-        }
+        return TDM_ERROR_NONE;
     }
-    else if (layer_data->display_buffer && layer_data->display_buffer_changed)
+    else if (layer_data->display_buffer_changed)
     {
         layer_data->display_buffer_changed = 0;
-        if (drmModePageFlip(exynos_data->drm_fd, output_data->crtc_id,
-                            layer_data->display_buffer->fb_id, 0, layer_data->display_buffer))
+
+        if (!layer_data->display_buffer)
         {
-            TDM_ERR("pageflip failed: %m");
-            return TDM_ERROR_OPERATION_FAILED;
+            if (drmModeSetCrtc(exynos_data->drm_fd, output_data->crtc_id,
+                               0, 0, 0, NULL, 0, NULL))
+            {
+                TDM_ERR("unset crtc failed: %m");
+                return TDM_ERROR_OPERATION_FAILED;
+            }
+        }
+        else
+        {
+            if (drmModePageFlip(exynos_data->drm_fd, output_data->crtc_id,
+                                layer_data->display_buffer->fb_id, 0, layer_data->display_buffer))
+            {
+                TDM_ERR("pageflip failed: %m");
+                return TDM_ERROR_OPERATION_FAILED;
+            }
         }
     }
 
@@ -301,14 +306,27 @@ _tdm_exynos_display_commit_layer(tdm_exynos_layer_data *layer_data)
     unsigned int new_src_x, new_src_w;
     unsigned int new_dst_x, new_dst_w;
     uint32_t fx, fy, fw, fh;
+    int crtc_w;
 
     if (!layer_data->display_buffer_changed && !layer_data->info_changed)
         return TDM_ERROR_NONE;
 
-    if (!output_data->current_mode)
+    if (output_data->current_mode)
+        crtc_w = output_data->current_mode->width;
+    else
     {
-        TDM_ERR("no mode for output");
-        return TDM_ERROR_BAD_REQUEST;
+        drmModeCrtcPtr crtc = drmModeGetCrtc(exynos_data->drm_fd, output_data->crtc_id);
+        if (!crtc)
+        {
+            TDM_ERR("getting crtc failed");
+            return TDM_ERROR_OPERATION_FAILED;
+        }
+        crtc_w = crtc->width;
+        if (crtc_w == 0)
+        {
+            TDM_ERR("getting crtc width failed");
+            return TDM_ERROR_OPERATION_FAILED;
+        }
     }
 
     layer_data->display_buffer_changed = 0;
@@ -324,7 +342,7 @@ _tdm_exynos_display_commit_layer(tdm_exynos_layer_data *layer_data)
     }
 
     /* check hw restriction*/
-    if (check_hw_restriction(output_data->current_mode->width, layer_data->display_buffer->width,
+    if (check_hw_restriction(crtc_w, layer_data->display_buffer->width,
                              layer_data->info.src_config.pos.x,
                              layer_data->info.src_config.pos.w,
                              layer_data->info.dst_pos.x,
