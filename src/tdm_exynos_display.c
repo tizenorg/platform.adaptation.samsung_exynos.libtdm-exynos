@@ -161,6 +161,26 @@ check_hw_restriction(unsigned int crtc_w, unsigned int buf_w,
 static drmModeModeInfoPtr
 _tdm_exynos_display_get_mode(tdm_exynos_output_data *output_data)
 {
+    int i;
+
+    if (!output_data->current_mode)
+    {
+        TDM_ERR("no output_data->current_mode");
+        return NULL;
+    }
+
+    for (i = 0; i < output_data->count_modes; i++)
+    {
+        drmModeModeInfoPtr drm_mode = &output_data->drm_modes[i];
+        if ((drm_mode->hdisplay == output_data->current_mode->width) &&
+            (drm_mode->vdisplay == output_data->current_mode->height) &&
+            (drm_mode->vrefresh == output_data->current_mode->refresh) &&
+            (drm_mode->flags == output_data->current_mode->flags) &&
+            (drm_mode->type == output_data->current_mode->type) &&
+            !(strncmp(drm_mode->name, output_data->current_mode->name, TDM_NAME_LEN)))
+            return drm_mode;
+    }
+
     return NULL;
 }
 
@@ -1017,7 +1037,7 @@ tdm_exynos_display_set_property(tdm_exynos_data *exynos_data,
     TDM_ERR("not found '%s' property", name);
 
     drmModeFreeObjectProperties(props);
-    return TDM_ERROR_OPERATION_FAILED;
+    return TDM_ERROR_NONE;
 }
 
 tdm_error
