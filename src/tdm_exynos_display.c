@@ -308,7 +308,7 @@ _tdm_exynos_display_commit_primary_layer(tdm_exynos_layer_data *layer_data)
         else
         {
             if (drmModePageFlip(exynos_data->drm_fd, output_data->crtc_id,
-                                layer_data->display_buffer->fb_id, 0, layer_data->display_buffer))
+                                layer_data->display_buffer->fb_id, DRM_MODE_PAGE_FLIP_EVENT, layer_data->display_buffer))
             {
                 TDM_ERR("pageflip failed: %m");
                 return TDM_ERROR_OPERATION_FAILED;
@@ -504,6 +504,9 @@ _tdm_exynos_display_events_handle(int fd, Drm_Event_Context *evctx)
                                        (void *)((unsigned long)ipp->user_data));
                     TDM_DBG("******* PP *******...");
                 }
+                break;
+            case DRM_EVENT_FLIP_COMPLETE:
+                /* do nothing for flip complete */
                 break;
             default:
                 break;
@@ -1440,7 +1443,6 @@ exynos_output_commit(tdm_output *output, int sync, void *user_data)
     tdm_exynos_output_data *output_data = output;
     tdm_exynos_data *exynos_data;
     tdm_exynos_layer_data *layer_data;
-    int do_wait_vblank = 0;
     tdm_error ret;
 
     RETURN_VAL_IF_FAIL(output_data, TDM_ERROR_INVALID_PARAMETER);
@@ -1458,12 +1460,12 @@ exynos_output_commit(tdm_output *output, int sync, void *user_data)
         else
         {
             ret = _tdm_exynos_display_commit_layer(layer_data);
-            if (ret == TDM_ERROR_NONE)
-                do_wait_vblank = 1;
+            if (ret != TDM_ERROR_NONE)
+                return ret;
         }
     }
 
-    if (do_wait_vblank && tdm_helper_drm_fd == -1)
+    if (tdm_helper_drm_fd == -1)
     {
         tdm_exynos_vblank_data *vblank_data = calloc(1, sizeof(tdm_exynos_vblank_data));
         uint target_msc;
