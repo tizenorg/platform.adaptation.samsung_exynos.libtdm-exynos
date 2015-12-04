@@ -144,6 +144,8 @@ _tdm_exynos_drm_user_handler(struct drm_event *event)
     if (event->type != DRM_EXYNOS_IPP_EVENT)
         return -1;
 
+    TDM_DBG("got ipp event");
+
     ipp = (struct drm_exynos_ipp_event *)event;
 
     tdm_exynos_pp_handler(ipp->prop_id, ipp->buf_id, ipp->tv_sec, ipp->tv_usec,
