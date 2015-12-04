@@ -232,7 +232,7 @@ tdm_exynos_pp_handler(unsigned int prop_id, unsigned int *buf_idx,
                       unsigned int tv_sec, unsigned int tv_usec, void *data)
 {
     tdm_exynos_pp_data *pp_data = data;
-    tdm_exynos_pp_buffer *buffer, *dequeued_buffer = NULL;
+    tdm_exynos_pp_buffer *b, *bb, *dequeued_buffer = NULL;
 
     if (!pp_data || !buf_idx)
     {
@@ -242,11 +242,11 @@ tdm_exynos_pp_handler(unsigned int prop_id, unsigned int *buf_idx,
 
     TDM_DBG("pp_data(%p) index(%d, %d)", pp_data, buf_idx[0], buf_idx[1]);
 
-    LIST_FOR_EACH_ENTRY(buffer, &pp_data->buffer_list, link)
+    LIST_FOR_EACH_ENTRY_SAFE(b, bb, &pp_data->buffer_list, link)
     {
-        if (buf_idx[0] == buffer->index)
+        if (buf_idx[0] == b->index)
         {
-            dequeued_buffer = buffer;
+            dequeued_buffer = b;
             LIST_DEL(&dequeued_buffer->link);
             TDM_DBG("dequeued: %d", dequeued_buffer->index);
             break;
