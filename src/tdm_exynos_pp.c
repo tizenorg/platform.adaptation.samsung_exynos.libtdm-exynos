@@ -28,7 +28,6 @@ typedef struct _tdm_exynos_pp_data
     tdm_pp_done_handler done_func;
     void *done_user_data;
 
-    int csc;
     int startd;
     int first_event;
 } tdm_exynos_pp_data;
@@ -46,22 +45,7 @@ static tbm_format pp_formats[] =
     TBM_FORMAT_YVU420
 };
 
-enum
-{
-    PP_PROP_CSC,
-};
-
-static struct
-{
-    unsigned int id;
-    const char *name;
-} pp_props[] =
-{
-    {PP_PROP_CSC,     "csc"},
-};
-
 #define NUM_PP_FORMAT   (sizeof(pp_formats) / sizeof(pp_formats[0]))
-#define NUM_PP_PROP     (sizeof(pp_props) / sizeof(pp_props[0]))
 
 static int
 _get_index(tdm_exynos_pp_data *pp_data)
@@ -118,7 +102,6 @@ _tdm_exynos_pp_set(tdm_exynos_pp_data *pp_data)
     memcpy(&property.config[1].pos, &info->dst_config.pos, sizeof(tdm_pos));
     property.cmd = IPP_CMD_M2M;
     property.prop_id = pp_data->prop_id;
-    property.range = pp_data->csc;
 
     TDM_DBG("src : flip(%x) deg(%d) fmt(%c%c%c%c) sz(%dx%d) pos(%d,%d %dx%d)  ",
             property.config[0].flip, property.config[0].degree, FOURCC_STR(property.config[0].fmt),
@@ -298,22 +281,6 @@ tdm_exynos_pp_get_capability(tdm_exynos_data *exynos_data, tdm_caps_pp *caps)
     for (i = 0; i < caps->format_count; i++)
         caps->formats[i] = pp_formats[i];
 
-    caps->prop_count = NUM_PP_PROP;
-
-    /* will be freed in frontend */
-    caps->props = calloc(1, sizeof pp_props);
-    if (!caps->props)
-    {
-        free(caps->formats);
-        TDM_ERR("alloc failed");
-        return TDM_ERROR_OUT_OF_MEMORY;
-    }
-    for (i = 0; i < caps->prop_count; i++)
-    {
-        caps->props[i].id = pp_props[i].id;
-        snprintf(caps->props[i].name, TDM_NAME_LEN, "%s", pp_props[i].name);
-    }
-
     caps->min_w = 16;
     caps->min_h = 8;
     caps->max_w = -1;   /* not defined */
@@ -369,47 +336,6 @@ exynos_pp_destroy(tdm_pp *pp)
     }
 
     free(pp_data);
-}
-
-tdm_error
-exynos_pp_set_property(tdm_pp * pp, unsigned int id, tdm_value value)
-{
-    tdm_exynos_pp_data *pp_data = pp;
-
-    RETURN_VAL_IF_FAIL(pp_data, TDM_ERROR_INVALID_PARAMETER);
-
-    switch(id)
-    {
-    case PP_PROP_CSC:
-        pp_data->csc = value.u32;
-        break;
-    default:
-        TDM_ERR("invalid prop_id: %d", id);
-        return TDM_ERROR_INVALID_PARAMETER;
-    }
-
-    return TDM_ERROR_NONE;
-}
-
-tdm_error
-exynos_pp_get_property(tdm_pp * pp, unsigned int id, tdm_value *value)
-{
-    tdm_exynos_pp_data *pp_data = pp;
-
-    RETURN_VAL_IF_FAIL(pp_data, TDM_ERROR_INVALID_PARAMETER);
-    RETURN_VAL_IF_FAIL(value, TDM_ERROR_INVALID_PARAMETER);
-
-    switch(id)
-    {
-    case PP_PROP_CSC:
-        (*value).u32 = pp_data->csc;
-        break;
-    default:
-        TDM_ERR("invalid prop_id: %d", id);
-        return TDM_ERROR_INVALID_PARAMETER;
-    }
-
-    return TDM_ERROR_NONE;
 }
 
 tdm_error

@@ -46,8 +46,6 @@ static tdm_func_display exynos_func_display =
 static tdm_func_pp exynos_func_pp =
 {
     exynos_pp_destroy,
-    exynos_pp_set_property,
-    exynos_pp_get_property,
     exynos_pp_set_info,
     exynos_pp_attach,
     exynos_pp_commit,
