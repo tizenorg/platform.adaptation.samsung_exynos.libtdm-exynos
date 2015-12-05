@@ -6,11 +6,11 @@
 
 typedef struct _tdm_exynos_pp_buffer
 {
-    struct list_head link;
-
     int index;
     tbm_surface_h src;
     tbm_surface_h dst;
+
+    struct list_head link;
 } tdm_exynos_pp_buffer;
 
 typedef struct _tdm_exynos_pp_data
@@ -30,6 +30,8 @@ typedef struct _tdm_exynos_pp_data
 
     int startd;
     int first_event;
+
+    struct list_head link;
 } tdm_exynos_pp_data;
 
 
@@ -46,6 +48,9 @@ static tbm_format pp_formats[] =
 };
 
 #define NUM_PP_FORMAT   (sizeof(pp_formats) / sizeof(pp_formats[0]))
+
+static int pp_list_init;
+static struct list_head pp_list;
 
 static int
 _get_index(tdm_exynos_pp_data *pp_data)
@@ -214,14 +219,22 @@ void
 tdm_exynos_pp_handler(unsigned int prop_id, unsigned int *buf_idx,
                       unsigned int tv_sec, unsigned int tv_usec, void *data)
 {
-    tdm_exynos_pp_data *pp_data = data;
-    tdm_exynos_pp_buffer *b, *bb, *dequeued_buffer = NULL;
+    tdm_exynos_pp_data *found = NULL, *pp_data = data;
+    tdm_exynos_pp_buffer *b = NULL, *bb = NULL, *dequeued_buffer = NULL;
 
     if (!pp_data || !buf_idx)
     {
         TDM_ERR("invalid params");
         return;
     }
+
+    LIST_FOR_EACH_ENTRY(found, &pp_list, link)
+    {
+        if (found == pp_data)
+            break;
+    }
+    if (!found)
+        return;
 
     TDM_DBG("pp_data(%p) index(%d, %d)", pp_data, buf_idx[0], buf_idx[1]);
 
@@ -307,6 +320,13 @@ tdm_exynos_pp_create(tdm_exynos_data *exynos_data, tdm_error *error)
     LIST_INITHEAD(&pp_data->pending_buffer_list);
     LIST_INITHEAD(&pp_data->buffer_list);
 
+    if (!pp_list_init)
+    {
+        pp_list_init = 1;
+        LIST_INITHEAD(&pp_list);
+    }
+    LIST_ADDTAIL(&pp_data->link, &pp_list);
+
     return pp_data;
 }
 
@@ -318,9 +338,6 @@ exynos_pp_destroy(tdm_pp *pp)
 
     if (!pp_data)
         return;
-
-    if (pp_data->prop_id)
-        _tdm_exynos_pp_cmd(pp_data, IPP_CTRL_STOP);
 
     LIST_FOR_EACH_ENTRY_SAFE(b, bb, &pp_data->pending_buffer_list, link)
     {
@@ -334,6 +351,11 @@ exynos_pp_destroy(tdm_pp *pp)
         _tdm_exynos_pp_queue(pp_data, b, IPP_BUF_DEQUEUE);
         free(b);
     }
+
+    if (pp_data->prop_id)
+        _tdm_exynos_pp_cmd(pp_data, IPP_CTRL_STOP);
+
+    LIST_DEL(&pp_data->link);
 
     free(pp_data);
 }
