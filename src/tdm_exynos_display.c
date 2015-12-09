@@ -1213,7 +1213,7 @@ exynos_output_get_capability(tdm_output *output, tdm_caps_output *caps)
     RETURN_VAL_IF_FAIL(connector, TDM_ERROR_OPERATION_FAILED);
 
     caps->mode_count = connector->count_modes;
-    caps->modes = calloc(1, sizeof(tdm_output_mode*) * caps->mode_count);
+    caps->modes = calloc(1, sizeof(tdm_output_mode) * caps->mode_count);
     if (!caps->modes)
     {
         ret = TDM_ERROR_OUT_OF_MEMORY;
@@ -1221,7 +1221,7 @@ exynos_output_get_capability(tdm_output *output, tdm_caps_output *caps)
         goto failed_get;
     }
     for (i = 0; i < caps->mode_count; i++)
-        caps->modes[i] = &output_data->output_modes[i];
+        caps->modes[i] = output_data->output_modes[i];
 
     caps->mmWidth = connector->mmWidth;
     caps->mmHeight = connector->mmHeight;
