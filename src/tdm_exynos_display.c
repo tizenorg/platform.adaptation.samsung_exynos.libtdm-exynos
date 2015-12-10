@@ -1838,8 +1838,23 @@ tdm_error
 exynos_layer_unset_buffer(tdm_layer *layer)
 {
     tdm_exynos_layer_data *layer_data = layer;
+    tdm_exynos_data *exynos_data;
+    tdm_exynos_display_buffer *display_buffer;
+    int ret;
 
     RETURN_VAL_IF_FAIL(layer_data, TDM_ERROR_INVALID_PARAMETER);
+
+	exynos_data = layer_data->exynos_data;
+	display_buffer = layer_data->display_buffer;
+
+    ret = drmModeRmFB(exynos_data->drm_fd, display_buffer->fb_id);
+    if (ret < 0)
+    {
+		TDM_ERR("rm fb failed: %m");
+		return TDM_ERROR_OPERATION_FAILED;
+    }
+
+    LIST_DEL(&display_buffer->link);
 
     layer_data->display_buffer = NULL;
     layer_data->display_buffer_changed = 1;
