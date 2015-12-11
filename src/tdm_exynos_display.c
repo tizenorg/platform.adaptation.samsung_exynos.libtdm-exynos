@@ -9,6 +9,9 @@
 #define MIN_WIDTH   32
 #define LAYER_COUNT_PER_OUTPUT   2
 
+/* key of tbo's user_data */
+#define TBM_BODATA_TDMEXYNOS 0x500
+
 
 typedef struct _tdm_exynos_output_data tdm_exynos_output_data;
 typedef struct _tdm_exynos_layer_data tdm_exynos_layer_data;
@@ -25,7 +28,7 @@ typedef struct _tdm_exynos_display_buffer
     struct list_head link;
 
     unsigned int fb_id;
-    tbm_surface_h buffer;
+    tdm_buffer *buffer;
     int width;
 } tdm_exynos_display_buffer;
 
@@ -185,7 +188,7 @@ _tdm_exynos_display_get_mode(tdm_exynos_output_data *output_data)
 }
 
 static tdm_exynos_display_buffer*
-_tdm_exynos_display_find_buffer(tdm_exynos_data *exynos_data, tbm_surface_h buffer)
+_tdm_exynos_display_find_buffer(tdm_exynos_data *exynos_data, tdm_buffer *buffer)
 {
     tdm_exynos_display_buffer *display_buffer;
 
@@ -792,6 +795,50 @@ _tdm_exynos_display_create_layer_list_not_fixed(tdm_exynos_data *exynos_data)
     }
 
     return TDM_ERROR_NONE;
+}
+
+static void
+_tdm_exynos_display_cb_destroy_buffer(tdm_buffer *buffer, void *user_data)
+{
+    tdm_exynos_data *exynos_data;
+    tdm_exynos_display_buffer *display_buffer;
+    int ret;
+
+    if (!user_data)
+    {
+        TDM_ERR("no user_data");
+        return;
+    }
+    if (!buffer)
+    {
+        TDM_ERR("no buffer");
+        return;
+    }
+
+    exynos_data = (tdm_exynos_data *)user_data;
+
+    display_buffer = _tdm_exynos_display_find_buffer(exynos_data, buffer);
+    if (!display_buffer)
+    {
+        TDM_ERR("no display_buffer");
+        return;
+    }
+    LIST_DEL(&display_buffer->link);
+
+    if (display_buffer->fb_id > 0)
+    {
+        ret = drmModeRmFB(exynos_data->drm_fd, display_buffer->fb_id);
+        if (ret < 0)
+        {
+            TDM_ERR("rm fb failed");
+            return;
+        }
+        TDM_DBG("drmModeRmFB success!!! fb_id:%d", display_buffer->fb_id);
+    }
+    else
+        TDM_DBG("drmModeRmFB not called fb_id:%d", display_buffer->fb_id);
+
+    free(display_buffer);
 }
 
 tdm_error
@@ -1766,17 +1813,20 @@ exynos_layer_get_info(tdm_layer *layer, tdm_info_layer *info)
 }
 
 tdm_error
-exynos_layer_set_buffer(tdm_layer *layer, tbm_surface_h buffer)
+exynos_layer_set_buffer(tdm_layer *layer, tdm_buffer *buffer)
 {
     tdm_exynos_layer_data *layer_data = layer;
     tdm_exynos_data *exynos_data;
     tdm_exynos_display_buffer *display_buffer;
+    tdm_error err = TDM_ERROR_NONE;
+    tbm_surface_h surface;
     int ret, i, count;
 
     RETURN_VAL_IF_FAIL(layer_data, TDM_ERROR_INVALID_PARAMETER);
     RETURN_VAL_IF_FAIL(buffer, TDM_ERROR_INVALID_PARAMETER);
 
     exynos_data = layer_data->exynos_data;
+    surface = tdm_buffer_get_surface(buffer);
 
     display_buffer = _tdm_exynos_display_find_buffer(exynos_data, buffer);
     if (!display_buffer)
@@ -1786,6 +1836,14 @@ exynos_layer_set_buffer(tdm_layer *layer, tbm_surface_h buffer)
         {
             TDM_ERR("alloc failed");
             return TDM_ERROR_OUT_OF_MEMORY;
+        }
+        display_buffer->buffer = buffer;
+
+        err = tdm_buffer_add_destroy_handler(buffer, _tdm_exynos_display_cb_destroy_buffer, exynos_data);
+        if (err != TDM_ERROR_NONE)
+        {
+            TDM_ERR("add destroy handler fail");
+            return TDM_ERROR_OPERATION_FAILED;
         }
 
         LIST_ADDTAIL(&display_buffer->link, &exynos_data->buffer_list);
@@ -1801,18 +1859,18 @@ exynos_layer_set_buffer(tdm_layer *layer, tbm_surface_h buffer)
         unsigned int offsets[4] = {0,};
         unsigned int size;
 
-        width = tbm_surface_get_width(buffer);
-        height = tbm_surface_get_height(buffer);
-        format = tbm_surface_get_format(buffer);
-        count = tbm_surface_internal_get_num_bos(buffer);
+        width = tbm_surface_get_width(surface);
+        height = tbm_surface_get_height(surface);
+        format = tbm_surface_get_format(surface);
+        count = tbm_surface_internal_get_num_bos(surface);
         for (i = 0; i < count; i++)
         {
-            tbm_bo bo = tbm_surface_internal_get_bo(buffer, i);
+            tbm_bo bo = tbm_surface_internal_get_bo(surface, i);
             handles[i] = tbm_bo_get_handle(bo, TBM_DEVICE_DEFAULT).u32;
         }
         count = tbm_surface_internal_get_num_planes(format);
         for (i = 0; i < count; i++)
-            tbm_surface_internal_get_plane_data(buffer, i, &size, &offsets[i], &pitches[i]);
+            tbm_surface_internal_get_plane_data(surface, i, &size, &offsets[i], &pitches[i]);
 
         ret = drmModeAddFB2(exynos_data->drm_fd, width, height, format,
                             handles, pitches, offsets, &display_buffer->fb_id, 0);
@@ -1821,6 +1879,7 @@ exynos_layer_set_buffer(tdm_layer *layer, tbm_surface_h buffer)
             TDM_ERR("add fb failed: %m");
             return TDM_ERROR_OPERATION_FAILED;
         }
+        TDM_DBG("exynos_data->drm_fd : %d, display_buffer->fb_id:%u", exynos_data->drm_fd, display_buffer->fb_id);
 
         if (IS_RGB(format))
             display_buffer->width = pitches[0] >> 2;
