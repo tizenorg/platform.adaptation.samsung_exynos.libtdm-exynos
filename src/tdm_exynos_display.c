@@ -9,10 +9,6 @@
 #define MIN_WIDTH   32
 #define LAYER_COUNT_PER_OUTPUT   2
 
-/* key of tbo's user_data */
-#define TBM_BODATA_TDMEXYNOS 0x500
-
-
 typedef struct _tdm_exynos_output_data tdm_exynos_output_data;
 typedef struct _tdm_exynos_layer_data tdm_exynos_layer_data;
 typedef struct _tdm_exynos_vblank_data tdm_exynos_vblank_data;
