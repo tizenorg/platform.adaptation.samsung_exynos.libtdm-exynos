@@ -40,6 +40,7 @@ static tdm_func_display exynos_func_display =
     exynos_layer_get_info,
     exynos_layer_set_buffer,
     exynos_layer_unset_buffer,
+    NULL,    //layer_set_video_pos
     NULL,    //layer_create_capture
 };
 
