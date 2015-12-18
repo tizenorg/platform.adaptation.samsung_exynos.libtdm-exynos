@@ -216,6 +216,14 @@ _tdm_exynos_pp_cmd(tdm_exynos_pp_data *pp_data, enum drm_exynos_ipp_ctrl cmd)
 }
 
 void
+tdm_exynos_pp_cb(int fd, unsigned int prop_id, unsigned int *buf_idx,
+                 unsigned int tv_sec, unsigned int tv_usec,
+                 void *user_data)
+{
+    tdm_exynos_pp_handler(prop_id, buf_idx, tv_sec, tv_usec, user_data);
+}
+
+void
 tdm_exynos_pp_handler(unsigned int prop_id, unsigned int *buf_idx,
                       unsigned int tv_sec, unsigned int tv_usec, void *data)
 {

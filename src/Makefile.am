@@ -10,5 +10,7 @@ libtdm_exynos_la_LIBADD = $(TDM_EXYNOS_LIBS) -ldl
 libtdm_exynos_la_SOURCES = \
 	tdm_exynos_format.c \
 	tdm_exynos_display.c \
+	tdm_exynos_output.c \
+	tdm_exynos_layer.c \
 	tdm_exynos_pp.c \
 	tdm_exynos.c
