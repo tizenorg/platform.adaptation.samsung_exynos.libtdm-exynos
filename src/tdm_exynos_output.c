@@ -702,7 +702,7 @@ exynos_output_get_dpms(tdm_output *output, tdm_output_dpms *dpms_value)
 }
 
 tdm_error
-exynos_output_set_mode(tdm_output *output, tdm_output_mode *mode)
+exynos_output_set_mode(tdm_output *output, const tdm_output_mode *mode)
 {
     tdm_exynos_output_data *output_data = output;
 

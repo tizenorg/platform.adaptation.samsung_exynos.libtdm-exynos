@@ -114,7 +114,7 @@ struct _tdm_exynos_output_data
     tdm_output_conn_status status;
 
     int mode_changed;
-    tdm_output_mode *current_mode;
+    const tdm_output_mode *current_mode;
 
     int waiting_vblank_event;
 };
