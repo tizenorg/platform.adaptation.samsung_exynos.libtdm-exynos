@@ -143,7 +143,7 @@ struct _tdm_exynos_display_buffer
     struct list_head link;
 
     unsigned int fb_id;
-    tdm_buffer *buffer;
+    tbm_surface_h buffer;
     int width;
 };
 

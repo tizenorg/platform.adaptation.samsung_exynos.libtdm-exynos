@@ -663,7 +663,7 @@ tdm_exynos_display_get_property(tdm_exynos_data *exynos_data,
 }
 
 tdm_exynos_display_buffer*
-tdm_exynos_display_find_buffer(tdm_exynos_data *exynos_data, tdm_buffer *buffer)
+tdm_exynos_display_find_buffer(tdm_exynos_data *exynos_data, tbm_surface_h buffer)
 {
     tdm_exynos_display_buffer *display_buffer;
 

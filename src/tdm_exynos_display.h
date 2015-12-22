@@ -12,6 +12,6 @@ tdm_error    tdm_exynos_display_set_property(tdm_exynos_data *exynos_data,
 tdm_error    tdm_exynos_display_get_property(tdm_exynos_data *exynos_data,
                                              unsigned int obj_id, unsigned int obj_type,
                                              const char *name, unsigned int *value, int *is_immutable);
-tdm_exynos_display_buffer* tdm_exynos_display_find_buffer(tdm_exynos_data *exynos_data, tdm_buffer *buffer);
+tdm_exynos_display_buffer* tdm_exynos_display_find_buffer(tdm_exynos_data *exynos_data, tbm_surface_h buffer);
 
 #endif /* _TDM_EXYNOS_DISPLAY_H_ */
