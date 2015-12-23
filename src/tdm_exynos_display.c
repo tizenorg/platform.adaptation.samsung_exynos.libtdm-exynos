@@ -103,7 +103,7 @@ _tdm_exynos_display_create_layer_list_type(tdm_exynos_data *exynos_data)
 
     for (i = 0; i < exynos_data->plane_res->count_planes; i++)
     {
-        tdm_exynos_output_data *output_data;
+        tdm_exynos_output_data *output_data = NULL;
         tdm_exynos_layer_data *layer_data;
         drmModePlanePtr plane;
         unsigned int type = 0;
@@ -193,7 +193,7 @@ _tdm_exynos_display_create_layer_list_immutable_zpos(tdm_exynos_data *exynos_dat
 
     for (i = 0; i < exynos_data->plane_res->count_planes; i++)
     {
-        tdm_exynos_output_data *output_data;
+        tdm_exynos_output_data *output_data = NULL;
         tdm_exynos_layer_data *layer_data;
         drmModePlanePtr plane;
         unsigned int type = 0, zpos = 0;
@@ -291,7 +291,7 @@ _tdm_exynos_display_create_layer_list_not_fixed(tdm_exynos_data *exynos_data)
 
     for (i = 0; i < exynos_data->plane_res->count_planes; i++)
     {
-        tdm_exynos_output_data *output_data;
+        tdm_exynos_output_data *output_data = NULL;
         tdm_exynos_layer_data *layer_data;
         drmModePlanePtr plane;
 
@@ -375,7 +375,7 @@ _tdm_exynos_display_create_layer_list_not_fixed(tdm_exynos_data *exynos_data)
 tdm_error
 tdm_exynos_display_create_layer_list(tdm_exynos_data *exynos_data)
 {
-    tdm_exynos_output_data *output_data;
+    tdm_exynos_output_data *output_data = NULL;
     tdm_error ret;
 
     if (!exynos_data->has_zpos_info)
@@ -542,8 +542,8 @@ tdm_exynos_display_create_output_list(tdm_exynos_data *exynos_data)
         if (!output_data->output_modes)
         {
             TDM_ERR("alloc failed");
-            free(output_data);
             free(output_data->drm_modes);
+            free(output_data);
             drmModeFreeConnector(connector);
             drmModeFreeEncoder(encoder);
             ret = TDM_ERROR_OUT_OF_MEMORY;
@@ -665,7 +665,7 @@ tdm_exynos_display_get_property(tdm_exynos_data *exynos_data,
 tdm_exynos_display_buffer*
 tdm_exynos_display_find_buffer(tdm_exynos_data *exynos_data, tbm_surface_h buffer)
 {
-    tdm_exynos_display_buffer *display_buffer;
+    tdm_exynos_display_buffer *display_buffer = NULL;
 
     LIST_FOR_EACH_ENTRY(display_buffer, &exynos_data->buffer_list, link)
     {
@@ -696,7 +696,7 @@ tdm_output**
 exynos_display_get_outputs(tdm_backend_data *bdata, int *count, tdm_error *error)
 {
     tdm_exynos_data *exynos_data = bdata;
-    tdm_exynos_output_data *output_data;
+    tdm_exynos_output_data *output_data = NULL;
     tdm_output **outputs;
     tdm_error ret;
     int i;

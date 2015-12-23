@@ -251,6 +251,7 @@ exynos_layer_set_buffer(tdm_layer *layer, tbm_surface_h buffer)
         if (err != TDM_ERROR_NONE)
         {
             TDM_ERR("add destroy handler fail");
+            free(display_buffer);
             return TDM_ERROR_OPERATION_FAILED;
         }
 

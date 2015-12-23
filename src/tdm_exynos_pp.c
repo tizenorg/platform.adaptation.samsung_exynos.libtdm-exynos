@@ -55,7 +55,7 @@ static struct list_head pp_list;
 static int
 _get_index(tdm_exynos_pp_data *pp_data)
 {
-    tdm_exynos_pp_buffer *buffer;
+    tdm_exynos_pp_buffer *buffer = NULL;
     int ret = 0;
 
     while (1)

@@ -422,7 +422,7 @@ tdm_layer**
 exynos_output_get_layers(tdm_output *output,  int *count, tdm_error *error)
 {
     tdm_exynos_output_data *output_data = output;
-    tdm_exynos_layer_data *layer_data;
+    tdm_exynos_layer_data *layer_data = NULL;
     tdm_layer **layers;
     tdm_error ret;
     int i;
@@ -577,7 +577,7 @@ exynos_output_commit(tdm_output *output, int sync, void *user_data)
 {
     tdm_exynos_output_data *output_data = output;
     tdm_exynos_data *exynos_data;
-    tdm_exynos_layer_data *layer_data;
+    tdm_exynos_layer_data *layer_data = NULL;
     tdm_error ret;
 
     RETURN_VAL_IF_FAIL(output_data, TDM_ERROR_INVALID_PARAMETER);
