@@ -145,7 +145,8 @@ _tdm_exynos_output_wait_vblank(int fd, int pipe, uint *target_msc, void *data)
 }
 
 static tdm_error
-_tdm_exynos_output_commit_primary_layer(tdm_exynos_layer_data *layer_data)
+_tdm_exynos_output_commit_primary_layer(tdm_exynos_layer_data *layer_data,
+                tdm_exynos_output_data *output, void *user_data, int *do_waitvblank)
 {
     tdm_exynos_data *exynos_data = layer_data->exynos_data;
     tdm_exynos_output_data *output_data = layer_data->output_data;
@@ -178,7 +179,7 @@ _tdm_exynos_output_commit_primary_layer(tdm_exynos_layer_data *layer_data)
             TDM_ERR("set crtc failed: %m");
             return TDM_ERROR_OPERATION_FAILED;
         }
-
+        *do_waitvblank = 1;
         return TDM_ERROR_NONE;
     }
     else if (layer_data->display_buffer_changed)
@@ -193,15 +194,26 @@ _tdm_exynos_output_commit_primary_layer(tdm_exynos_layer_data *layer_data)
                 TDM_ERR("unset crtc failed: %m");
                 return TDM_ERROR_OPERATION_FAILED;
             }
+            *do_waitvblank = 1;
         }
         else
         {
+            tdm_exynos_vblank_data *vblank_data = calloc(1, sizeof(tdm_exynos_vblank_data));
+            if (!vblank_data)
+            {
+                TDM_ERR("alloc failed");
+                return TDM_ERROR_OUT_OF_MEMORY;
+            }
+            vblank_data->type = VBLANK_TYPE_PAGEFLIP;
+            vblank_data->output_data = output;
+            vblank_data->user_data = user_data;
             if (drmModePageFlip(exynos_data->drm_fd, output_data->crtc_id,
-                                layer_data->display_buffer->fb_id, DRM_MODE_PAGE_FLIP_EVENT, layer_data->display_buffer))
+                    layer_data->display_buffer->fb_id, DRM_MODE_PAGE_FLIP_EVENT, vblank_data))
             {
                 TDM_ERR("pageflip failed: %m");
                 return TDM_ERROR_OPERATION_FAILED;
             }
+            *do_waitvblank = 0;
         }
     }
 
@@ -318,8 +330,39 @@ tdm_exynos_output_cb_vblank(int fd, unsigned int sequence,
             output_data->commit_func(output_data, sequence, tv_sec, tv_usec, vblank_data->user_data);
         break;
     default:
+        break;
+    }
+
+    free(vblank_data);
+}
+
+void
+tdm_exynos_output_cb_pageflip(int fd, unsigned int sequence,
+                            unsigned int tv_sec, unsigned int tv_usec,
+                            void *user_data)
+{
+    tdm_exynos_vblank_data *vblank_data = user_data;
+    tdm_exynos_output_data *output_data;
+
+    if (!vblank_data)
+    {
+        TDM_ERR("no vblank data");
         return;
     }
+
+    output_data = vblank_data->output_data;
+
+    switch(vblank_data->type)
+    {
+    case VBLANK_TYPE_PAGEFLIP:
+        if (output_data->commit_func)
+            output_data->commit_func(output_data, sequence, tv_sec, tv_usec, vblank_data->user_data);
+        break;
+    default:
+        break;
+    }
+
+    free(vblank_data);
 }
 
 tdm_error
@@ -579,6 +622,7 @@ exynos_output_commit(tdm_output *output, int sync, void *user_data)
     tdm_exynos_data *exynos_data;
     tdm_exynos_layer_data *layer_data = NULL;
     tdm_error ret;
+    int do_waitvblank = 1;
 
     RETURN_VAL_IF_FAIL(output_data, TDM_ERROR_INVALID_PARAMETER);
 
@@ -588,7 +632,7 @@ exynos_output_commit(tdm_output *output, int sync, void *user_data)
     {
         if (layer_data == output_data->primary_layer)
         {
-            ret = _tdm_exynos_output_commit_primary_layer(layer_data);
+            ret = _tdm_exynos_output_commit_primary_layer(layer_data, output_data, user_data, &do_waitvblank);
             if (ret != TDM_ERROR_NONE)
                 return ret;
         }
@@ -605,7 +649,7 @@ exynos_output_commit(tdm_output *output, int sync, void *user_data)
      * ecore_drm doesn't use tdm yet. When we make ecore_drm use tdm,
      * tdm_helper_drm_fd will be removed.
      */
-    if (tdm_helper_drm_fd == -1)
+    if ((tdm_helper_drm_fd == -1) && (do_waitvblank == 1))
     {
         tdm_exynos_vblank_data *vblank_data = calloc(1, sizeof(tdm_exynos_vblank_data));
         uint target_msc;
