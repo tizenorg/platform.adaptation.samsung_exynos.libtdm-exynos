@@ -84,7 +84,19 @@ _tdm_exynos_display_events_handle(int fd, Drm_Event_Context *evctx)
                 }
                 break;
             case DRM_EVENT_FLIP_COMPLETE:
-                /* do nothing for flip complete */
+                {
+                    struct drm_event_vblank *vblank;
+
+                    if (evctx->pageflip_handler == NULL)
+                        break;
+
+                    vblank = (struct drm_event_vblank *)e;
+                    TDM_DBG("******* PAGEFLIP *******");
+                    evctx->pageflip_handler (fd, vblank->sequence,
+                                           vblank->tv_sec, vblank->tv_usec,
+                                           (void *)((unsigned long)vblank->user_data));
+                    TDM_DBG("******* PAGEFLIP *******...");
+                }
                 break;
             default:
                 break;
@@ -761,6 +773,7 @@ exynos_display_handle_events(tdm_backend_data *bdata)
 
     memset(&ctx, 0, sizeof(Drm_Event_Context));
 
+    ctx.pageflip_handler = tdm_exynos_output_cb_pageflip;
     ctx.vblank_handler = tdm_exynos_output_cb_vblank;
     ctx.pp_handler = tdm_exynos_pp_cb;
 
