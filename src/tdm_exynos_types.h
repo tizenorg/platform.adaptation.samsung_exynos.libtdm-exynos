@@ -57,6 +57,7 @@ typedef enum
 {
     VBLANK_TYPE_WAIT,
     VBLANK_TYPE_COMMIT,
+    VBLANK_TYPE_PAGEFLIP,
 } vblank_type;
 
 typedef struct _tdm_exynos_data tdm_exynos_data;
@@ -117,6 +118,8 @@ struct _tdm_exynos_output_data
     const tdm_output_mode *current_mode;
 
     int waiting_vblank_event;
+
+    int crtc_set;
 };
 
 struct _tdm_exynos_layer_data
@@ -156,6 +159,8 @@ struct _tdm_exynos_vblank_data
 
 typedef struct _Drm_Event_Context
 {
+    void (*pageflip_handler)(int fd, unsigned int sequence, unsigned int tv_sec,
+                           unsigned int tv_usec, void *user_data);
     void (*vblank_handler)(int fd, unsigned int sequence, unsigned int tv_sec,
                            unsigned int tv_usec, void *user_data);
     void (*pp_handler)(int fd, unsigned int  prop_id, unsigned int *buf_idx,
