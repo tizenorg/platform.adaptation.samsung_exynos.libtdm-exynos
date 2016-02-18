@@ -20,6 +20,10 @@ static tdm_func_display exynos_func_display =
     exynos_display_get_fd,
     exynos_display_handle_events,
     exynos_display_create_pp,
+};
+
+static tdm_func_output exynos_func_output =
+{
     exynos_output_get_capability,
     exynos_output_get_layers,
     exynos_output_set_property,
@@ -33,6 +37,10 @@ static tdm_func_display exynos_func_display =
     exynos_output_set_mode,
     exynos_output_get_mode,
     NULL,   //output_create_capture
+};
+
+static tdm_func_layer exynos_func_layer =
+{
     exynos_layer_get_capability,
     exynos_layer_set_property,
     exynos_layer_get_property,
@@ -210,6 +218,14 @@ tdm_exynos_init(tdm_display *dpy, tdm_error *error)
     LIST_INITHEAD(&exynos_data->buffer_list);
 
     ret = tdm_backend_register_func_display(dpy, &exynos_func_display);
+    if (ret != TDM_ERROR_NONE)
+        goto failed;
+
+    ret = tdm_backend_register_func_output(dpy, &exynos_func_output);
+    if (ret != TDM_ERROR_NONE)
+        goto failed;
+
+    ret = tdm_backend_register_func_layer(dpy, &exynos_func_layer);
     if (ret != TDM_ERROR_NONE)
         goto failed;
 
