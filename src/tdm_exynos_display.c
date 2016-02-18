@@ -11,9 +11,18 @@
 static void
 _tdm_exynos_display_to_tdm_mode(drmModeModeInfoPtr drm_mode, tdm_output_mode *tdm_mode)
 {
-    tdm_mode->width = drm_mode->hdisplay;
-    tdm_mode->height = drm_mode->vdisplay;
-    tdm_mode->refresh = drm_mode->vrefresh;
+    tdm_mode->clock = drm_mode->clock;
+    tdm_mode->hdisplay = drm_mode->hdisplay;
+    tdm_mode->hsync_start = drm_mode->hsync_start;
+    tdm_mode->hsync_end = drm_mode->hsync_end;
+    tdm_mode->htotal = drm_mode->htotal;
+    tdm_mode->hskew = drm_mode->hskew;
+    tdm_mode->vdisplay = drm_mode->vdisplay;
+    tdm_mode->vsync_start = drm_mode->vsync_start;
+    tdm_mode->vsync_end = drm_mode->vsync_end;
+    tdm_mode->vtotal = drm_mode->vtotal;
+    tdm_mode->vscan = drm_mode->vscan;
+    tdm_mode->vrefresh = drm_mode->vrefresh;
     tdm_mode->flags = drm_mode->flags;
     tdm_mode->type = drm_mode->type;
     snprintf(tdm_mode->name, TDM_NAME_LEN, "%s", drm_mode->name);
