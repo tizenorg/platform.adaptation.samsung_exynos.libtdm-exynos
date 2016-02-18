@@ -169,7 +169,7 @@ tdm_exynos_deinit(tdm_backend_data *bdata)
 
     TDM_INFO("deinit");
 
-    drmRemoveUserHandler(tdm_helper_drm_fd, _tdm_exynos_drm_user_handler);
+    drmRemoveUserHandler(exynos_data->drm_fd, _tdm_exynos_drm_user_handler);
 
     tdm_exynos_display_destroy_output_list(exynos_data);
 
@@ -235,26 +235,14 @@ tdm_exynos_init(tdm_display *dpy, tdm_error *error)
 
     exynos_data->dpy = dpy;
 
-    /* TODO: tdm_helper_drm_fd is external drm_fd which is opened by ecore_drm.
-     * This is very tricky. But we can't remove tdm_helper_drm_fd now because
-     * ecore_drm doesn't use tdm yet. When we make ecore_drm use tdm,
-     * tdm_helper_drm_fd will be removed.
-     */
-    exynos_data->drm_fd = -1;
-    if (tdm_helper_drm_fd >= 0)
-    {
-        exynos_data->drm_fd = tdm_helper_drm_fd;
-        drmAddUserHandler(tdm_helper_drm_fd, _tdm_exynos_drm_user_handler);
-    }
-
-    if (exynos_data->drm_fd < 0)
-        exynos_data->drm_fd = _tdm_exynos_open_drm();
-
+    exynos_data->drm_fd = _tdm_exynos_open_drm();
     if (exynos_data->drm_fd < 0)
     {
         ret = TDM_ERROR_OPERATION_FAILED;
         goto failed;
     }
+
+    drmAddUserHandler(exynos_data->drm_fd, _tdm_exynos_drm_user_handler);
 
     if (drmSetClientCap(exynos_data->drm_fd, DRM_CLIENT_CAP_UNIVERSAL_PLANES, 1) < 0)
         TDM_WRN("Set DRM_CLIENT_CAP_UNIVERSAL_PLANES failed");
