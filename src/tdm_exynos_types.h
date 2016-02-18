@@ -55,15 +55,15 @@
 
 typedef enum
 {
-    VBLANK_TYPE_WAIT,
-    VBLANK_TYPE_COMMIT,
-    VBLANK_TYPE_PAGEFLIP,
-} vblank_type;
+    TDM_EXYNOS_EVENT_TYPE_WAIT,
+    TDM_EXYNOS_EVENT_TYPE_COMMIT,
+    TDM_EXYNOS_EVENT_TYPE_PAGEFLIP,
+} tdm_exynos_event_type;
 
 typedef struct _tdm_exynos_data tdm_exynos_data;
 typedef struct _tdm_exynos_output_data tdm_exynos_output_data;
 typedef struct _tdm_exynos_layer_data tdm_exynos_layer_data;
-typedef struct _tdm_exynos_vblank_data tdm_exynos_vblank_data;
+typedef struct _tdm_exynos_event_data tdm_exynos_event_data;
 typedef struct _tdm_exynos_display_buffer tdm_exynos_display_buffer;
 
 struct _tdm_exynos_data
@@ -117,8 +117,6 @@ struct _tdm_exynos_output_data
     int mode_changed;
     const tdm_output_mode *current_mode;
 
-    int waiting_vblank_event;
-
     int crtc_set;
 };
 
@@ -150,9 +148,9 @@ struct _tdm_exynos_display_buffer
     int width;
 };
 
-struct _tdm_exynos_vblank_data
+struct _tdm_exynos_event_data
 {
-    vblank_type type;
+    tdm_exynos_event_type type;
     tdm_exynos_output_data *output_data;
     void *user_data;
 };

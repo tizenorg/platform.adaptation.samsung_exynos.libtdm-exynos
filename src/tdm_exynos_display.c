@@ -19,94 +19,6 @@ _tdm_exynos_display_to_tdm_mode(drmModeModeInfoPtr drm_mode, tdm_output_mode *td
     snprintf(tdm_mode->name, TDM_NAME_LEN, "%s", drm_mode->name);
 }
 
-static int
-_tdm_exynos_display_events_handle(int fd, Drm_Event_Context *evctx)
-{
-#define MAX_BUF_SIZE    1024
-
-    char buffer[MAX_BUF_SIZE];
-    unsigned int len, i;
-    struct drm_event *e;
-
-    /* The DRM read semantics guarantees that we always get only
-     * complete events. */
-    len = read(fd, buffer, sizeof buffer);
-    if (len == 0)
-    {
-        TDM_WRN("warning: the size of the drm_event is 0.");
-        return 0;
-    }
-    if (len < sizeof *e)
-    {
-        TDM_WRN("warning: the size of the drm_event is less than drm_event structure.");
-        return -1;
-    }
-    if (len > MAX_BUF_SIZE - sizeof(struct drm_exynos_ipp_event))
-    {
-        TDM_WRN("warning: the size of the drm_event can be over the maximum size.");
-        return -1;
-    }
-
-    i = 0;
-    while (i < len)
-    {
-        e = (struct drm_event *) &buffer[i];
-        switch (e->type)
-        {
-            case DRM_EVENT_VBLANK:
-                {
-                    struct drm_event_vblank *vblank;
-
-                    if (evctx->vblank_handler == NULL)
-                        break;
-
-                    vblank = (struct drm_event_vblank *)e;
-                    TDM_DBG("******* VBLANK *******");
-                    evctx->vblank_handler (fd, vblank->sequence,
-                                           vblank->tv_sec, vblank->tv_usec,
-                                           (void *)((unsigned long)vblank->user_data));
-                    TDM_DBG("******* VBLANK *******...");
-                }
-                break;
-            case DRM_EXYNOS_IPP_EVENT:
-                {
-                    struct drm_exynos_ipp_event *ipp;
-
-                    if (evctx->pp_handler == NULL)
-                        break;
-
-                    ipp = (struct drm_exynos_ipp_event *)e;
-                    TDM_DBG("******* PP *******");
-                    evctx->pp_handler (fd, ipp->prop_id, ipp->buf_id,
-                                       ipp->tv_sec, ipp->tv_usec,
-                                       (void *)((unsigned long)ipp->user_data));
-                    TDM_DBG("******* PP *******...");
-                }
-                break;
-            case DRM_EVENT_FLIP_COMPLETE:
-                {
-                    struct drm_event_vblank *vblank;
-
-                    if (evctx->pageflip_handler == NULL)
-                        break;
-
-                    vblank = (struct drm_event_vblank *)e;
-                    TDM_DBG("******* PAGEFLIP *******");
-                    evctx->pageflip_handler (fd, vblank->sequence,
-                                           vblank->tv_sec, vblank->tv_usec,
-                                           (void *)((unsigned long)vblank->user_data));
-                    TDM_DBG("******* PAGEFLIP *******...");
-                }
-                break;
-            default:
-                break;
-        }
-        i += e->length;
-    }
-
-    return 0;
-}
-
 static tdm_error
 _tdm_exynos_display_create_layer_list_type(tdm_exynos_data *exynos_data)
 {
@@ -767,17 +679,17 @@ tdm_error
 exynos_display_handle_events(tdm_backend_data *bdata)
 {
     tdm_exynos_data *exynos_data = bdata;
-    Drm_Event_Context ctx;
+    drmEventContext ctx;
 
     RETURN_VAL_IF_FAIL(exynos_data, TDM_ERROR_INVALID_PARAMETER);
 
-    memset(&ctx, 0, sizeof(Drm_Event_Context));
+    memset(&ctx, 0, sizeof(drmEventContext));
 
-    ctx.pageflip_handler = tdm_exynos_output_cb_pageflip;
-    ctx.vblank_handler = tdm_exynos_output_cb_vblank;
-    ctx.pp_handler = tdm_exynos_pp_cb;
+    ctx.version = DRM_EVENT_CONTEXT_VERSION;
+    ctx.page_flip_handler = tdm_exynos_output_cb_event;
+    ctx.vblank_handler = tdm_exynos_output_cb_event;
 
-    _tdm_exynos_display_events_handle(exynos_data->drm_fd, &ctx);
+    drmHandleEvent(exynos_data->drm_fd, &ctx);
 
     return TDM_ERROR_NONE;
 }

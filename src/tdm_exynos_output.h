@@ -3,11 +3,7 @@
 
 #include "tdm_exynos.h"
 
-void tdm_exynos_output_cb_pageflip(int fd, unsigned int sequence,
+void tdm_exynos_output_cb_event(int fd, unsigned int sequence,
                                 unsigned int tv_sec, unsigned int tv_usec,
                                 void *user_data);
-
-void tdm_exynos_output_cb_vblank(int fd, unsigned int sequence,
-                                 unsigned int tv_sec, unsigned int tv_usec,
-                                 void *user_data);
 #endif /* _TDM_EXYNOS_OUTPUT_H_ */

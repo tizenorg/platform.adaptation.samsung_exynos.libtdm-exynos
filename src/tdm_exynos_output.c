@@ -197,17 +197,17 @@ _tdm_exynos_output_commit_primary_layer(tdm_exynos_layer_data *layer_data, void 
         }
         else
         {
-            tdm_exynos_vblank_data *vblank_data = calloc(1, sizeof(tdm_exynos_vblank_data));
-            if (!vblank_data)
+            tdm_exynos_event_data *event_data = calloc(1, sizeof(tdm_exynos_event_data));
+            if (!event_data)
             {
                 TDM_ERR("alloc failed");
                 return TDM_ERROR_OUT_OF_MEMORY;
             }
-            vblank_data->type = VBLANK_TYPE_PAGEFLIP;
-            vblank_data->output_data = output_data;
-            vblank_data->user_data = user_data;
+            event_data->type = TDM_EXYNOS_EVENT_TYPE_PAGEFLIP;
+            event_data->output_data = output_data;
+            event_data->user_data = user_data;
             if (drmModePageFlip(exynos_data->drm_fd, output_data->crtc_id,
-                    layer_data->display_buffer->fb_id, DRM_MODE_PAGE_FLIP_EVENT, vblank_data))
+                    layer_data->display_buffer->fb_id, DRM_MODE_PAGE_FLIP_EVENT, event_data))
             {
                 TDM_ERR("pageflip failed: %m");
                 return TDM_ERROR_OPERATION_FAILED;
@@ -303,65 +303,40 @@ _tdm_exynos_output_commit_layer(tdm_exynos_layer_data *layer_data)
 }
 
 void
-tdm_exynos_output_cb_vblank(int fd, unsigned int sequence,
-                            unsigned int tv_sec, unsigned int tv_usec,
-                            void *user_data)
+tdm_exynos_output_cb_event(int fd, unsigned int sequence,
+                           unsigned int tv_sec, unsigned int tv_usec,
+                           void *user_data)
 {
-    tdm_exynos_vblank_data *vblank_data = user_data;
+    tdm_exynos_event_data *event_data = user_data;
     tdm_exynos_output_data *output_data;
 
-    if (!vblank_data)
+    if (!event_data)
     {
-        TDM_ERR("no vblank data");
+        TDM_ERR("no event data");
         return;
     }
 
-    output_data = vblank_data->output_data;
+    output_data = event_data->output_data;
 
-    switch(vblank_data->type)
+    switch(event_data->type)
     {
-    case VBLANK_TYPE_WAIT:
+    case TDM_EXYNOS_EVENT_TYPE_PAGEFLIP:
+        if (output_data->commit_func)
+            output_data->commit_func(output_data, sequence, tv_sec, tv_usec, event_data->user_data);
+        break;
+    case TDM_EXYNOS_EVENT_TYPE_WAIT:
         if (output_data->vblank_func)
-            output_data->vblank_func(output_data, sequence, tv_sec, tv_usec, vblank_data->user_data);
+            output_data->vblank_func(output_data, sequence, tv_sec, tv_usec, event_data->user_data);
         break;
-    case VBLANK_TYPE_COMMIT:
+    case TDM_EXYNOS_EVENT_TYPE_COMMIT:
         if (output_data->commit_func)
-            output_data->commit_func(output_data, sequence, tv_sec, tv_usec, vblank_data->user_data);
+            output_data->commit_func(output_data, sequence, tv_sec, tv_usec, event_data->user_data);
         break;
     default:
         break;
     }
 
-    free(vblank_data);
-}
-
-void
-tdm_exynos_output_cb_pageflip(int fd, unsigned int sequence,
-                            unsigned int tv_sec, unsigned int tv_usec,
-                            void *user_data)
-{
-    tdm_exynos_vblank_data *vblank_data = user_data;
-    tdm_exynos_output_data *output_data;
-
-    if (!vblank_data)
-    {
-        TDM_ERR("no vblank data");
-        return;
-    }
-
-    output_data = vblank_data->output_data;
-
-    switch(vblank_data->type)
-    {
-    case VBLANK_TYPE_PAGEFLIP:
-        if (output_data->commit_func)
-            output_data->commit_func(output_data, sequence, tv_sec, tv_usec, vblank_data->user_data);
-        break;
-    default:
-        break;
-    }
-
-    free(vblank_data);
+    free(event_data);
 }
 
 tdm_error
@@ -566,14 +541,14 @@ exynos_output_wait_vblank(tdm_output *output, int interval, int sync, void *user
 {
     tdm_exynos_output_data *output_data = output;
     tdm_exynos_data *exynos_data;
-    tdm_exynos_vblank_data *vblank_data;
+    tdm_exynos_event_data *event_data;
     uint target_msc;
     tdm_error ret;
 
     RETURN_VAL_IF_FAIL(output_data, TDM_ERROR_INVALID_PARAMETER);
 
-    vblank_data = calloc(1, sizeof(tdm_exynos_vblank_data));
-    if (!vblank_data)
+    event_data = calloc(1, sizeof(tdm_exynos_event_data));
+    if (!event_data)
     {
         TDM_ERR("alloc failed");
         return TDM_ERROR_OUT_OF_MEMORY;
@@ -587,17 +562,17 @@ exynos_output_wait_vblank(tdm_output *output, int interval, int sync, void *user
 
     target_msc++;
 
-    vblank_data->type = VBLANK_TYPE_WAIT;
-    vblank_data->output_data = output_data;
-    vblank_data->user_data = user_data;
+    event_data->type = TDM_EXYNOS_EVENT_TYPE_WAIT;
+    event_data->output_data = output_data;
+    event_data->user_data = user_data;
 
-    ret = _tdm_exynos_output_wait_vblank(exynos_data->drm_fd, output_data->pipe, &target_msc, vblank_data);
+    ret = _tdm_exynos_output_wait_vblank(exynos_data->drm_fd, output_data->pipe, &target_msc, event_data);
     if (ret != TDM_ERROR_NONE)
         goto failed_vblank;
 
     return TDM_ERROR_NONE;
 failed_vblank:
-    free(vblank_data);
+    free(event_data);
     return ret;
 }
 
@@ -650,10 +625,10 @@ exynos_output_commit(tdm_output *output, int sync, void *user_data)
      */
     if ((tdm_helper_drm_fd == -1) && (do_waitvblank == 1))
     {
-        tdm_exynos_vblank_data *vblank_data = calloc(1, sizeof(tdm_exynos_vblank_data));
+        tdm_exynos_event_data *event_data = calloc(1, sizeof(tdm_exynos_event_data));
         uint target_msc;
 
-        if (!vblank_data)
+        if (!event_data)
         {
             TDM_ERR("alloc failed");
             return TDM_ERROR_OUT_OF_MEMORY;
@@ -662,20 +637,20 @@ exynos_output_commit(tdm_output *output, int sync, void *user_data)
         ret = _tdm_exynos_output_get_cur_msc(exynos_data->drm_fd, output_data->pipe, &target_msc);
         if (ret != TDM_ERROR_NONE)
         {
-            free(vblank_data);
+            free(event_data);
             return ret;
         }
 
         target_msc++;
 
-        vblank_data->type = VBLANK_TYPE_COMMIT;
-        vblank_data->output_data = output_data;
-        vblank_data->user_data = user_data;
+        event_data->type = TDM_EXYNOS_EVENT_TYPE_COMMIT;
+        event_data->output_data = output_data;
+        event_data->user_data = user_data;
 
-        ret = _tdm_exynos_output_wait_vblank(exynos_data->drm_fd, output_data->pipe, &target_msc, vblank_data);
+        ret = _tdm_exynos_output_wait_vblank(exynos_data->drm_fd, output_data->pipe, &target_msc, event_data);
         if (ret != TDM_ERROR_NONE)
         {
-            free(vblank_data);
+            free(event_data);
             return ret;
         }
     }
