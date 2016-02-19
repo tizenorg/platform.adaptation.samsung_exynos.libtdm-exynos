@@ -18,6 +18,7 @@ static tdm_func_display exynos_func_display =
     NULL,  //display_get_capture_capability
     exynos_display_get_outputs,
     exynos_display_get_fd,
+    exynos_display_get_fd,
     exynos_display_handle_events,
     exynos_display_create_pp,
 };
