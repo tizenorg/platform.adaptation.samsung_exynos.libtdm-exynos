@@ -281,6 +281,10 @@ exynos_layer_set_buffer(tdm_layer *layer, tbm_surface_h buffer)
         for (i = 0; i < count; i++)
             tbm_surface_internal_get_plane_data(buffer, i, &size, &offsets[i], &pitches[i]);
 
+        TDM_DBG("AddFB2: drm_fd(%d) size(%dx%d) format(%c%c%c%c) handles(%d,%d,%d) pitches(%d,%d,%d) offsets(%d,%d,%d) buffer(%p)",
+                exynos_data->drm_fd, width, height, FOURCC_STR(format), handles[0], handles[1], handles[2],
+                pitches[0], pitches[1], pitches[2], offsets[0], offsets[1], offsets[2], buffer);
+
         ret = drmModeAddFB2(exynos_data->drm_fd, width, height, format,
                             handles, pitches, offsets, &display_buffer->fb_id, 0);
         if (ret < 0)

@@ -171,6 +171,10 @@ _tdm_exynos_output_commit_primary_layer(tdm_exynos_layer_data *layer_data, void 
             return TDM_ERROR_BAD_REQUEST;
         }
 
+        TDM_DBG("SetCrtc: drm_fd(%d) crtc_id(%d) fb_id(%d) mode(%dx%d, %dhz)",
+                exynos_data->drm_fd, output_data->crtc_id, layer_data->display_buffer->fb_id,
+                mode->hdisplay, mode->vdisplay, mode->vrefresh);
+
         if (drmModeSetCrtc(exynos_data->drm_fd, output_data->crtc_id,
                            layer_data->display_buffer->fb_id, 0, 0,
                            &output_data->connector_id, 1, mode))
@@ -178,6 +182,7 @@ _tdm_exynos_output_commit_primary_layer(tdm_exynos_layer_data *layer_data, void 
             TDM_ERR("set crtc failed: %m");
             return TDM_ERROR_OPERATION_FAILED;
         }
+
         *do_waitvblank = 1;
         return TDM_ERROR_NONE;
     }
@@ -187,12 +192,16 @@ _tdm_exynos_output_commit_primary_layer(tdm_exynos_layer_data *layer_data, void 
 
         if (!layer_data->display_buffer)
         {
+            TDM_DBG("SetCrtc: drm_fd(%d) crtc_id(%d) off",
+                    exynos_data->drm_fd, output_data->crtc_id);
+
             if (drmModeSetCrtc(exynos_data->drm_fd, output_data->crtc_id,
                                0, 0, 0, NULL, 0, NULL))
             {
                 TDM_ERR("unset crtc failed: %m");
                 return TDM_ERROR_OPERATION_FAILED;
             }
+
             *do_waitvblank = 1;
         }
         else
@@ -206,6 +215,11 @@ _tdm_exynos_output_commit_primary_layer(tdm_exynos_layer_data *layer_data, void 
             event_data->type = TDM_EXYNOS_EVENT_TYPE_PAGEFLIP;
             event_data->output_data = output_data;
             event_data->user_data = user_data;
+
+            TDM_DBG("PageFlip: drm_fd(%d) crtc_id(%d) fb_id(%d)",
+                    exynos_data->drm_fd, output_data->crtc_id,
+                    layer_data->display_buffer->fb_id);
+
             if (drmModePageFlip(exynos_data->drm_fd, output_data->crtc_id,
                     layer_data->display_buffer->fb_id, DRM_MODE_PAGE_FLIP_EVENT, event_data))
             {
@@ -255,6 +269,9 @@ _tdm_exynos_output_commit_layer(tdm_exynos_layer_data *layer_data)
 
     if (!layer_data->display_buffer)
     {
+        TDM_DBG("SetPlane: drm_fd(%d) plane_id(%d) crtc_id(%d) off",
+                exynos_data->drm_fd, layer_data->plane_id, output_data->crtc_id);
+
         if (drmModeSetPlane(exynos_data->drm_fd, layer_data->plane_id,
                             output_data->crtc_id, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
             TDM_ERR("unset plane(%d) filed: %m", layer_data->plane_id);
@@ -288,6 +305,14 @@ _tdm_exynos_output_commit_layer(tdm_exynos_layer_data *layer_data)
     fy = ((unsigned int)layer_data->info.src_config.pos.y) << 16;
     fw = ((unsigned int)new_src_w) << 16;
     fh = ((unsigned int)layer_data->info.src_config.pos.h) << 16;
+
+    TDM_DBG("SetPlane: drm_fd(%d) plane_id(%d) crtc_id(%d) fb_id(%d) src(%d,%d %dx%d) dst(%d,%d %dx%d)",
+            exynos_data->drm_fd, layer_data->plane_id,
+            output_data->crtc_id, layer_data->display_buffer->fb_id,
+            new_src_x, layer_data->info.src_config.pos.y,
+            new_src_w, layer_data->info.src_config.pos.h,
+            layer_data->info.dst_pos.x, layer_data->info.dst_pos.y,
+            layer_data->info.dst_pos.w, layer_data->info.dst_pos.h);
 
     if (drmModeSetPlane(exynos_data->drm_fd, layer_data->plane_id,
                         output_data->crtc_id, layer_data->display_buffer->fb_id, 0,

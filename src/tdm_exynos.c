@@ -243,6 +243,8 @@ tdm_exynos_init(tdm_display *dpy, tdm_error *error)
         goto failed;
     }
 
+    TDM_DBG("drm_fd(%d)", exynos_data->drm_fd);
+
     drmAddUserHandler(exynos_data->drm_fd, _tdm_exynos_drm_user_handler);
 
     if (drmSetClientCap(exynos_data->drm_fd, DRM_CLIENT_CAP_UNIVERSAL_PLANES, 1) < 0)
