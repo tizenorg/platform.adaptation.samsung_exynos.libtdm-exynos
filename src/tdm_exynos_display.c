@@ -422,11 +422,11 @@ tdm_exynos_display_create_output_list(tdm_exynos_data *exynos_data)
 
 		for (j = 0; j < connector->count_props; j++) {
 			drmModePropertyPtr prop = drmModeGetProperty(exynos_data->drm_fd,
-			                          connector->props[i]);
+			                          connector->props[j]);
 			if (!prop)
 				continue;
 			if (!strcmp(prop->name, "DPMS")) {
-				output_data->dpms_prop_id = connector->props[i];
+				output_data->dpms_prop_id = connector->props[j];
 				drmModeFreeProperty(prop);
 				break;
 			}
