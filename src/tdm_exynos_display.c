@@ -99,7 +99,7 @@ _tdm_exynos_display_create_layer_list_type(tdm_exynos_data *exynos_data)
 			continue;
 		}
 
-		TDM_DBG("layer_data(%p) plane_id(%d) crtc_id(%d) zpos(%d) capabilities(%x)",
+		TDM_DBG("layer_data(%p) plane_id(%d) crtc_id(%d) zpos(%d) capabilities(%d)",
 		        layer_data, layer_data->plane_id, layer_data->output_data->crtc_id,
 		        layer_data->zpos, layer_data->capabilities);
 
