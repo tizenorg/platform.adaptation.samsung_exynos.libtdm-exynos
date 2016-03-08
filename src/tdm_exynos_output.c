@@ -32,7 +32,7 @@ check_hw_restriction(unsigned int crtc_w, unsigned int buf_w,
 	else
 		virtual_screen = 0;
 
-	start = (dst_x < 0) ? 0 : dst_x;
+	start = dst_x;
 	end = ((dst_x + dst_w) > crtc_w) ? crtc_w : (dst_x + dst_w);
 
 	/* check window minimun width */
