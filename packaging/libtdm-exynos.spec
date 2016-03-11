@@ -14,6 +14,8 @@ BuildRequires: pkgconfig(libtdm)
 %description
 Back-End library of Tizen Display Manager Exynos : libtdm-mgr Exynos library
 
+%global TZ_SYS_RO_SHARE  %{?TZ_SYS_RO_SHARE:%TZ_SYS_RO_SHARE}%{!?TZ_SYS_RO_SHARE:/usr/share}
+
 %prep
 %setup -q
 cp %{SOURCE1001} .
@@ -25,6 +27,9 @@ cp %{SOURCE1001} .
 make %{?_smp_mflags}
 
 %install
+rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{TZ_SYS_RO_SHARE}/license
+cp -af COPYING %{buildroot}/%{TZ_SYS_RO_SHARE}/license/%{name}
 %make_install
 
 %post
@@ -36,7 +41,7 @@ ln -s libtdm-exynos.so %{_libdir}/tdm/libtdm-default.so
 %postun -p /sbin/ldconfig
 
 %files
-%manifest %{name}.manifest
-%license COPYING
 %defattr(-,root,root,-)
+%manifest %{name}.manifest
+%{TZ_SYS_RO_SHARE}/license/%{name}
 %{_libdir}/tdm/libtdm-exynos.so
