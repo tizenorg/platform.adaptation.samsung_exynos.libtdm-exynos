@@ -221,11 +221,22 @@ tdm_exynos_init(tdm_display *dpy, tdm_error *error)
 
 	exynos_data->dpy = dpy;
 
-	exynos_data->drm_fd = _tdm_exynos_open_drm();
+	/* The drm master fd can be opened by a tbm backend module in
+	 * tbm_bufmgr_init() time. In this case, we just get it from
+	 * TBM_DRM_MASTER_FD enviroment.
+	 *
+	 */
+	exynos_data->drm_fd = tdm_helper_get_fd("TBM_DRM_MASTER_FD");
+	if (exynos_data->drm_fd < 0)
+		exynos_data->drm_fd = _tdm_exynos_open_drm();
+
 	if (exynos_data->drm_fd < 0) {
 		ret = TDM_ERROR_OPERATION_FAILED;
 		goto failed;
 	}
+
+	/* To share the drm master fd with other modules in display server side. */
+	tdm_helper_set_fd("TDM_DRM_MASTER_FD", exynos_data->drm_fd);
 
 	TDM_DBG("drm_fd(%d)", exynos_data->drm_fd);
 
