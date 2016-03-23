@@ -11,52 +11,6 @@
 
 #define EXYNOS_DRM_NAME "exynos"
 
-static tdm_func_display exynos_func_display = {
-	exynos_display_get_capabilitiy,
-	exynos_display_get_pp_capability,
-	NULL,  //display_get_capture_capability
-	exynos_display_get_outputs,
-	exynos_display_get_fd,
-	exynos_display_handle_events,
-	exynos_display_create_pp,
-};
-
-static tdm_func_output exynos_func_output = {
-	exynos_output_get_capability,
-	exynos_output_get_layers,
-	exynos_output_set_property,
-	exynos_output_get_property,
-	exynos_output_wait_vblank,
-	exynos_output_set_vblank_handler,
-	exynos_output_commit,
-	exynos_output_set_commit_handler,
-	exynos_output_set_dpms,
-	exynos_output_get_dpms,
-	exynos_output_set_mode,
-	exynos_output_get_mode,
-	NULL,   //output_create_capture
-};
-
-static tdm_func_layer exynos_func_layer = {
-	exynos_layer_get_capability,
-	exynos_layer_set_property,
-	exynos_layer_get_property,
-	exynos_layer_set_info,
-	exynos_layer_get_info,
-	exynos_layer_set_buffer,
-	exynos_layer_unset_buffer,
-	NULL,    //layer_set_video_pos
-	NULL,    //layer_create_capture
-};
-
-static tdm_func_pp exynos_func_pp = {
-	exynos_pp_destroy,
-	exynos_pp_set_info,
-	exynos_pp_attach,
-	exynos_pp_commit,
-	exynos_pp_set_done_handler,
-};
-
 static tdm_exynos_data *exynos_data;
 
 static int
@@ -175,6 +129,10 @@ tdm_exynos_deinit(tdm_backend_data *bdata)
 tdm_backend_data *
 tdm_exynos_init(tdm_display *dpy, tdm_error *error)
 {
+	tdm_func_display exynos_func_display;
+	tdm_func_output exynos_func_output;
+	tdm_func_layer exynos_func_layer;
+	tdm_func_pp exynos_func_pp;
 	tdm_error ret;
 
 	if (!dpy) {
@@ -201,6 +159,44 @@ tdm_exynos_init(tdm_display *dpy, tdm_error *error)
 
 	LIST_INITHEAD(&exynos_data->output_list);
 	LIST_INITHEAD(&exynos_data->buffer_list);
+
+	memset(&exynos_func_display, 0, sizeof(exynos_func_display));
+	exynos_func_display.display_get_capabilitiy = exynos_display_get_capabilitiy;
+	exynos_func_display.display_get_pp_capability = exynos_display_get_pp_capability;
+	exynos_func_display.display_get_outputs = exynos_display_get_outputs;
+	exynos_func_display.display_get_fd = exynos_display_get_fd;
+	exynos_func_display.display_handle_events = exynos_display_handle_events;
+	exynos_func_display.display_create_pp = exynos_display_create_pp;
+
+	memset(&exynos_func_output, 0, sizeof(exynos_func_output));
+	exynos_func_output.output_get_capability = exynos_output_get_capability;
+	exynos_func_output.output_get_layers = exynos_output_get_layers;
+	exynos_func_output.output_set_property = exynos_output_set_property;
+	exynos_func_output.output_get_property = exynos_output_get_property;
+	exynos_func_output.output_wait_vblank = exynos_output_wait_vblank;
+	exynos_func_output.output_set_vblank_handler = exynos_output_set_vblank_handler;
+	exynos_func_output.output_commit = exynos_output_commit;
+	exynos_func_output.output_set_commit_handler = exynos_output_set_commit_handler;
+	exynos_func_output.output_set_dpms = exynos_output_set_dpms;
+	exynos_func_output.output_get_dpms = exynos_output_get_dpms;
+	exynos_func_output.output_set_mode = exynos_output_set_mode;
+	exynos_func_output.output_get_mode = exynos_output_get_mode;
+
+	memset(&exynos_func_layer, 0, sizeof(exynos_func_layer));
+	exynos_func_layer.layer_get_capability = exynos_layer_get_capability;
+	exynos_func_layer.layer_set_property = exynos_layer_set_property;
+	exynos_func_layer.layer_get_property = exynos_layer_get_property;
+	exynos_func_layer.layer_set_info = exynos_layer_set_info;
+	exynos_func_layer.layer_get_info = exynos_layer_get_info;
+	exynos_func_layer.layer_set_buffer = exynos_layer_set_buffer;
+	exynos_func_layer.layer_unset_buffer = exynos_layer_unset_buffer;
+
+	memset(&exynos_func_pp, 0, sizeof(exynos_func_pp));
+	exynos_func_pp.pp_destroy = exynos_pp_destroy;
+	exynos_func_pp.pp_set_info = exynos_pp_set_info;
+	exynos_func_pp.pp_attach = exynos_pp_attach;
+	exynos_func_pp.pp_commit = exynos_pp_commit;
+	exynos_func_pp.pp_set_done_handler = exynos_pp_set_done_handler;
 
 	ret = tdm_backend_register_func_display(dpy, &exynos_func_display);
 	if (ret != TDM_ERROR_NONE)
