@@ -3,6 +3,7 @@
 
 #include "tdm_exynos.h"
 
+void         tdm_exynos_display_update_output_status(tdm_exynos_data *exynos_data);
 tdm_error    tdm_exynos_display_create_output_list(tdm_exynos_data *exynos_data);
 void         tdm_exynos_display_destroy_output_list(tdm_exynos_data *exynos_data);
 tdm_error    tdm_exynos_display_create_layer_list(tdm_exynos_data *exynos_data);

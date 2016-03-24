@@ -338,6 +338,36 @@ tdm_exynos_display_destroy_output_list(tdm_exynos_data *exynos_data)
 	}
 }
 
+void
+tdm_exynos_display_update_output_status(tdm_exynos_data *exynos_data)
+{
+	tdm_exynos_output_data *output_data = NULL;
+
+	if (LIST_IS_EMPTY(&exynos_data->output_list))
+		return;
+
+	LIST_FOR_EACH_ENTRY(output_data, &exynos_data->output_list, link) {
+		drmModeConnectorPtr connector;
+		tdm_output_conn_status new_status;
+
+		connector = drmModeGetConnector(exynos_data->drm_fd,
+		                                output_data->connector_id);
+		if (!connector) {
+			TDM_ERR("no connector: %d", output_data->connector_id);
+			continue;
+		}
+
+		if (connector->connection == DRM_MODE_CONNECTED)
+			new_status = TDM_OUTPUT_CONN_STATUS_CONNECTED;
+		else
+			new_status = TDM_OUTPUT_CONN_STATUS_DISCONNECTED;
+
+		tdm_exynos_output_update_status(output_data, new_status);
+
+		drmModeFreeConnector(connector);
+	}
+}
+
 tdm_error
 tdm_exynos_display_create_output_list(tdm_exynos_data *exynos_data)
 {

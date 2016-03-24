@@ -22,6 +22,10 @@
 #include <tdm_log.h>
 #include <tdm_list.h>
 
+#if HAVE_UDEV
+#include <libudev.h>
+#endif
+
 /* exynos module internal macros, structures */
 #define NEVER_GET_HERE() TDM_ERR("** NEVER GET HERE **")
 
@@ -72,6 +76,11 @@ struct _tdm_exynos_data
 
     int drm_fd;
 
+#if HAVE_UDEV
+    struct udev_monitor *uevent_monitor;
+    tdm_event_loop_source *uevent_source;
+#endif
+
     /* If true, it means that the device has many planes for one crtc. If false,
      * planes are dedicated to specific crtc.
      */
@@ -113,6 +122,8 @@ struct _tdm_exynos_output_data
     tdm_output_commit_handler commit_func;
 
     tdm_output_conn_status status;
+    tdm_output_status_handler status_func;
+    void *status_user_data;
 
     int mode_changed;
     const tdm_output_mode *current_mode;
