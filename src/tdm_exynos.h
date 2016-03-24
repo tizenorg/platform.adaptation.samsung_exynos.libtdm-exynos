@@ -48,6 +48,7 @@ tdm_error    exynos_output_set_dpms(tdm_output *output, tdm_output_dpms dpms_val
 tdm_error    exynos_output_get_dpms(tdm_output *output, tdm_output_dpms *dpms_value);
 tdm_error    exynos_output_set_mode(tdm_output *output, const tdm_output_mode *mode);
 tdm_error    exynos_output_get_mode(tdm_output *output, const tdm_output_mode **mode);
+tdm_error    exynos_output_set_status_handler(tdm_output *output, tdm_output_status_handler func, void *user_data);
 tdm_error    exynos_layer_get_capability(tdm_layer *layer, tdm_caps_layer *caps);
 tdm_error    exynos_layer_set_property(tdm_layer *layer, unsigned int id, tdm_value value);
 tdm_error    exynos_layer_get_property(tdm_layer *layer, unsigned int id, tdm_value *value);

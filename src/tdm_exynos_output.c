@@ -344,6 +344,24 @@ tdm_exynos_output_cb_event(int fd, unsigned int sequence,
 }
 
 tdm_error
+tdm_exynos_output_update_status(tdm_exynos_output_data *output_data,
+                                tdm_output_conn_status status)
+{
+	RETURN_VAL_IF_FAIL(output_data, TDM_ERROR_INVALID_PARAMETER);
+
+	if (output_data->status == status)
+		return TDM_ERROR_NONE;
+
+	output_data->status = status;
+
+	if (output_data->status_func)
+		output_data->status_func(output_data, status,
+		                         output_data->status_user_data);
+
+	return TDM_ERROR_NONE;
+}
+
+tdm_error
 exynos_output_get_capability(tdm_output *output, tdm_caps_output *caps)
 {
 	tdm_exynos_output_data *output_data = output;
@@ -741,6 +759,22 @@ exynos_output_get_mode(tdm_output *output, const tdm_output_mode **mode)
 	RETURN_VAL_IF_FAIL(mode, TDM_ERROR_INVALID_PARAMETER);
 
 	*mode = output_data->current_mode;
+
+	return TDM_ERROR_NONE;
+}
+
+tdm_error
+exynos_output_set_status_handler(tdm_output *output,
+                                 tdm_output_status_handler func,
+                                 void *user_data)
+{
+	tdm_exynos_output_data *output_data = output;
+
+	RETURN_VAL_IF_FAIL(output_data, TDM_ERROR_INVALID_PARAMETER);
+	RETURN_VAL_IF_FAIL(func, TDM_ERROR_INVALID_PARAMETER);
+
+	output_data->status_func = func;
+	output_data->status_user_data = user_data;
 
 	return TDM_ERROR_NONE;
 }
