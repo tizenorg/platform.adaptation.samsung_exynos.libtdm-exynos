@@ -305,6 +305,27 @@ _tdm_exynos_output_commit_layer(tdm_exynos_layer_data *layer_data)
 	return TDM_ERROR_NONE;
 }
 
+static void
+_tdm_exynos_output_to_tdm_mode(drmModeModeInfoPtr drm_mode,
+                                tdm_output_mode *tdm_mode)
+{
+	tdm_mode->clock = drm_mode->clock;
+	tdm_mode->hdisplay = drm_mode->hdisplay;
+	tdm_mode->hsync_start = drm_mode->hsync_start;
+	tdm_mode->hsync_end = drm_mode->hsync_end;
+	tdm_mode->htotal = drm_mode->htotal;
+	tdm_mode->hskew = drm_mode->hskew;
+	tdm_mode->vdisplay = drm_mode->vdisplay;
+	tdm_mode->vsync_start = drm_mode->vsync_start;
+	tdm_mode->vsync_end = drm_mode->vsync_end;
+	tdm_mode->vtotal = drm_mode->vtotal;
+	tdm_mode->vscan = drm_mode->vscan;
+	tdm_mode->vrefresh = drm_mode->vrefresh;
+	tdm_mode->flags = drm_mode->flags;
+	tdm_mode->type = drm_mode->type;
+	snprintf(tdm_mode->name, TDM_NAME_LEN, "%s", drm_mode->name);
+}
+
 void
 tdm_exynos_output_cb_event(int fd, unsigned int sequence,
                            unsigned int tv_sec, unsigned int tv_usec,
@@ -365,7 +386,6 @@ exynos_output_get_capability(tdm_output *output, tdm_caps_output *caps)
 	snprintf(caps->model, TDM_NAME_LEN, "unknown");
 	snprintf(caps->name, TDM_NAME_LEN, "unknown");
 
-	caps->status = output_data->status;
 	caps->type = output_data->connector_type;
 	caps->type_id = output_data->connector_type_id;
 
@@ -379,8 +399,30 @@ exynos_output_get_capability(tdm_output *output, tdm_caps_output *caps)
 		TDM_ERR("alloc failed\n");
 		goto failed_get;
 	}
-	for (i = 0; i < caps->mode_count; i++)
+	if (caps->mode_count != output_data->count_modes) {
+		if (output_data->drm_modes)
+			free(output_data->drm_modes);
+		if (output_data->output_modes)
+			free(output_data->output_modes);
+
+		output_data->drm_modes = calloc(connector->count_modes,
+									sizeof(drmModeModeInfo));
+		output_data->output_modes = calloc(connector->count_modes,
+									sizeof(tdm_output_mode));
+		output_data->count_modes = caps->mode_count;
+	}
+	for (i = 0; i < caps->mode_count; i++) {
+		output_data->drm_modes[i] = connector->modes[i];
+		_tdm_exynos_output_to_tdm_mode(&output_data->drm_modes[i],
+										&output_data->output_modes[i]);
 		caps->modes[i] = output_data->output_modes[i];
+	}
+
+	if (connector->connection == DRM_MODE_CONNECTED)
+		output_data->status = TDM_OUTPUT_CONN_STATUS_CONNECTED;
+	else
+		output_data->status = TDM_OUTPUT_CONN_STATUS_DISCONNECTED;
+	caps->status = output_data->status;
 
 	caps->mmWidth = connector->mmWidth;
 	caps->mmHeight = connector->mmHeight;
