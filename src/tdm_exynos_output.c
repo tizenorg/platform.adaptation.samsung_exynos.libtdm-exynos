@@ -365,7 +365,6 @@ exynos_output_get_capability(tdm_output *output, tdm_caps_output *caps)
 	snprintf(caps->model, TDM_NAME_LEN, "unknown");
 	snprintf(caps->name, TDM_NAME_LEN, "unknown");
 
-	caps->status = output_data->status;
 	caps->type = output_data->connector_type;
 	caps->type_id = output_data->connector_type_id;
 
@@ -381,6 +380,12 @@ exynos_output_get_capability(tdm_output *output, tdm_caps_output *caps)
 	}
 	for (i = 0; i < caps->mode_count; i++)
 		caps->modes[i] = output_data->output_modes[i];
+
+	if (connector->connection == DRM_MODE_CONNECTED)
+		output_data->status = TDM_OUTPUT_CONN_STATUS_CONNECTED;
+	else
+		output_data->status = TDM_OUTPUT_CONN_STATUS_DISCONNECTED;
+	caps->status = output_data->status;
 
 	caps->mmWidth = connector->mmWidth;
 	caps->mmHeight = connector->mmHeight;
