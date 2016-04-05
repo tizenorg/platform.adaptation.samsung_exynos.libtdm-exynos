@@ -13,5 +13,7 @@ tdm_error    tdm_exynos_display_get_property(tdm_exynos_data *exynos_data,
                                              unsigned int obj_id, unsigned int obj_type,
                                              const char *name, unsigned int *value, int *is_immutable);
 tdm_exynos_display_buffer* tdm_exynos_display_find_buffer(tdm_exynos_data *exynos_data, tbm_surface_h buffer);
+void         tdm_exynos_display_to_tdm_mode(drmModeModeInfoPtr drm_mode, tdm_output_mode *tdm_mode);
+
 
 #endif /* _TDM_EXYNOS_DISPLAY_H_ */

@@ -8,27 +8,6 @@
 
 #define LAYER_COUNT_PER_OUTPUT   2
 
-static void
-_tdm_exynos_display_to_tdm_mode(drmModeModeInfoPtr drm_mode,
-                                tdm_output_mode *tdm_mode)
-{
-	tdm_mode->clock = drm_mode->clock;
-	tdm_mode->hdisplay = drm_mode->hdisplay;
-	tdm_mode->hsync_start = drm_mode->hsync_start;
-	tdm_mode->hsync_end = drm_mode->hsync_end;
-	tdm_mode->htotal = drm_mode->htotal;
-	tdm_mode->hskew = drm_mode->hskew;
-	tdm_mode->vdisplay = drm_mode->vdisplay;
-	tdm_mode->vsync_start = drm_mode->vsync_start;
-	tdm_mode->vsync_end = drm_mode->vsync_end;
-	tdm_mode->vtotal = drm_mode->vtotal;
-	tdm_mode->vscan = drm_mode->vscan;
-	tdm_mode->vrefresh = drm_mode->vrefresh;
-	tdm_mode->flags = drm_mode->flags;
-	tdm_mode->type = drm_mode->type;
-	snprintf(tdm_mode->name, TDM_NAME_LEN, "%s", drm_mode->name);
-}
-
 static tdm_error
 _tdm_exynos_display_create_layer_list_type(tdm_exynos_data *exynos_data)
 {
@@ -289,6 +268,27 @@ _tdm_exynos_display_create_layer_list_not_fixed(tdm_exynos_data *exynos_data)
 	return TDM_ERROR_NONE;
 }
 
+void
+tdm_exynos_display_to_tdm_mode(drmModeModeInfoPtr drm_mode,
+                                tdm_output_mode *tdm_mode)
+{
+	tdm_mode->clock = drm_mode->clock;
+	tdm_mode->hdisplay = drm_mode->hdisplay;
+	tdm_mode->hsync_start = drm_mode->hsync_start;
+	tdm_mode->hsync_end = drm_mode->hsync_end;
+	tdm_mode->htotal = drm_mode->htotal;
+	tdm_mode->hskew = drm_mode->hskew;
+	tdm_mode->vdisplay = drm_mode->vdisplay;
+	tdm_mode->vsync_start = drm_mode->vsync_start;
+	tdm_mode->vsync_end = drm_mode->vsync_end;
+	tdm_mode->vtotal = drm_mode->vtotal;
+	tdm_mode->vscan = drm_mode->vscan;
+	tdm_mode->vrefresh = drm_mode->vrefresh;
+	tdm_mode->flags = drm_mode->flags;
+	tdm_mode->type = drm_mode->type;
+	snprintf(tdm_mode->name, TDM_NAME_LEN, "%s", drm_mode->name);
+}
+
 tdm_error
 tdm_exynos_display_create_layer_list(tdm_exynos_data *exynos_data)
 {
@@ -457,7 +457,7 @@ tdm_exynos_display_create_output_list(tdm_exynos_data *exynos_data)
 		}
 		for (j = 0; j < connector->count_modes; j++) {
 			output_data->drm_modes[j] = connector->modes[j];
-			_tdm_exynos_display_to_tdm_mode(&output_data->drm_modes[j],
+			tdm_exynos_display_to_tdm_mode(&output_data->drm_modes[j],
 			                                &output_data->output_modes[j]);
 		}
 
