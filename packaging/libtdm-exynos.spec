@@ -22,6 +22,9 @@ cp %{SOURCE1001} .
 
 %build
 %reconfigure --prefix=%{_prefix} --libdir=%{_libdir}  --disable-static \
+%if "%_repository" == "target-circle"
+             --enable-tiled-format \
+%endif
              CFLAGS="${CFLAGS} -Wall -Werror" \
              LDFLAGS="${LDFLAGS} -Wl,--hash-style=both -Wl,--as-needed"
 make %{?_smp_mflags}

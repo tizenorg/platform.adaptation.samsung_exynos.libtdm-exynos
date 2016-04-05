@@ -41,7 +41,10 @@ static tbm_format pp_formats[] = {
 	TBM_FORMAT_NV12,
 	TBM_FORMAT_NV21,
 	TBM_FORMAT_YUV420,
-	TBM_FORMAT_YVU420
+	TBM_FORMAT_YVU420,
+#ifdef HAVE_TILED_FORMAT
+	TBM_FORMAT_NV12MT,
+#endif
 };
 
 #define NUM_PP_FORMAT   (sizeof(pp_formats) / sizeof(pp_formats[0]))

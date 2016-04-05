@@ -34,6 +34,13 @@ fi
 AC_SUBST(TDM_EXYNOS_CFLAGS)
 AC_SUBST(TDM_EXYNOS_LIBS)
 
+AC_ARG_ENABLE([tiled-format],
+              [AC_HELP_STRING([--enable-tiled-format], [Enable tiled format])],
+              [], [enable_tiled_format=no])
+if test "x$enable_tiled_format" = "xyes"; then
+  AC_DEFINE(HAVE_TILED_FORMAT, [1], [Enable tiled format])
+fi
+
 # set the dir for the tbm module
 DEFAULT_TDM_MODULE_PATH="${libdir}/tdm"
 AC_ARG_WITH(tdm-module-path, AS_HELP_STRING([--with-tdm-module-path=PATH], [tdm module dir]),
