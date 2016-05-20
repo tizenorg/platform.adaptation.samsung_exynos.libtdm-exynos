@@ -9,6 +9,49 @@
 #define MIN_WIDTH   32
 
 static tdm_error
+check_hw_restriction_crtc(unsigned int crtc_w,
+						  unsigned int buf_w, unsigned int buf_h,
+						  unsigned int src_x, unsigned int src_y,
+						  unsigned int src_w, unsigned int src_h,
+						  unsigned int dst_w, unsigned int dst_h,
+						  unsigned int *new_x, unsigned int *new_y)
+{
+	int tmp;
+	int dx = 1, dy = 1;
+	int changed_x = 0;
+	int changed_y = 0;
+
+	(void) crtc_w;
+	(void) dst_w;
+	(void) dst_h;
+
+	*new_x = src_x;
+	*new_y = src_y;
+
+	if (src_x + src_w > buf_w) {
+		tmp = src_x;
+    	while(tmp + src_w != buf_w)
+    		tmp -= dx;
+
+    	changed_x = 1;
+    	*new_x = tmp;
+	}
+
+	if (src_y + src_h > buf_h) {
+		tmp = src_y;
+		while(tmp + src_h != buf_h)
+			tmp -= dy;
+
+		changed_y = 1;
+		*new_y = tmp;
+	}
+
+	if (changed_x == 1 || changed_y == 1)
+		return TDM_ERROR_INVALID_PARAMETER;
+	return TDM_ERROR_NONE;
+}
+
+static tdm_error
 check_hw_restriction(unsigned int crtc_w, unsigned int buf_w,
                      unsigned int src_x, unsigned int src_w, unsigned int dst_x, unsigned int dst_w,
                      unsigned int *new_src_x, unsigned int *new_src_w,
@@ -143,6 +186,9 @@ _tdm_exynos_output_commit_primary_layer(tdm_exynos_layer_data *layer_data,
 {
 	tdm_exynos_data *exynos_data = layer_data->exynos_data;
 	tdm_exynos_output_data *output_data = layer_data->output_data;
+	unsigned int new_x = -1, new_y = -1;
+	uint32_t fx, fy;
+	int crtc_w;
 
 	if (output_data->mode_changed && layer_data->display_buffer_changed) {
 		drmModeModeInfoPtr mode;
@@ -150,6 +196,21 @@ _tdm_exynos_output_commit_primary_layer(tdm_exynos_layer_data *layer_data,
 		if (!layer_data->display_buffer) {
 			TDM_ERR("primary layer should have a buffer for modestting");
 			return TDM_ERROR_BAD_REQUEST;
+		}
+
+		if (output_data->current_mode)
+			crtc_w = output_data->current_mode->hdisplay;
+		else {
+			drmModeCrtcPtr crtc = drmModeGetCrtc(exynos_data->drm_fd, output_data->crtc_id);
+			if (!crtc) {
+				TDM_ERR("getting crtc failed");
+				return TDM_ERROR_OPERATION_FAILED;
+			}
+			crtc_w = crtc->width;
+			if (crtc_w == 0) {
+				TDM_ERR("getting crtc width failed");
+				return TDM_ERROR_OPERATION_FAILED;
+			}
 		}
 
 		output_data->mode_changed = 0;
@@ -162,12 +223,30 @@ _tdm_exynos_output_commit_primary_layer(tdm_exynos_layer_data *layer_data,
 			return TDM_ERROR_BAD_REQUEST;
 		}
 
-		TDM_DBG("SetCrtc: drm_fd(%d) crtc_id(%d) fb_id(%d) mode(%dx%d, %dhz)",
-		        exynos_data->drm_fd, output_data->crtc_id, layer_data->display_buffer->fb_id,
-		        mode->hdisplay, mode->vdisplay, mode->vrefresh);
+		if (check_hw_restriction_crtc(crtc_w,
+									  layer_data->info.src_config.size.h, layer_data->info.src_config.size.v,
+									  layer_data->info.src_config.pos.x, layer_data->info.src_config.pos.y,
+									  layer_data->info.src_config.pos.w, layer_data->info.src_config.pos.h,
+									  layer_data->info.dst_pos.w, layer_data->info.dst_pos.h,
+									  &new_x, &new_y) != TDM_ERROR_NONE)
+			TDM_WRN("not going to set crtc(%d)", output_data->crtc_id);
+
+		if (layer_data->info.src_config.pos.x != new_x)
+			TDM_DBG("src_x changed: %d => %d", layer_data->info.src_config.pos.x,
+					new_x);
+		if (layer_data->info.src_config.pos.y != new_y)
+			TDM_DBG("src_y changed: %d => %d", layer_data->info.src_config.pos.y,
+					new_y);
+
+		fx = (unsigned int)new_x;
+		fy = (unsigned int)new_y;
+
+		TDM_DBG("SetCrtc: drm_fd(%d) crtc_id(%d) fb_id(%d) mode(%dx%d, %dhz) pos(%d %d)",
+				exynos_data->drm_fd, output_data->crtc_id, layer_data->display_buffer->fb_id,
+				mode->hdisplay, mode->vdisplay, mode->vrefresh, fx, fy);
 
 		if (drmModeSetCrtc(exynos_data->drm_fd, output_data->crtc_id,
-		                   layer_data->display_buffer->fb_id, 0, 0,
+		                   layer_data->display_buffer->fb_id, fx, fy,
 		                   &output_data->connector_id, 1, mode)) {
 			TDM_ERR("set crtc failed: %m");
 			return TDM_ERROR_OPERATION_FAILED;
