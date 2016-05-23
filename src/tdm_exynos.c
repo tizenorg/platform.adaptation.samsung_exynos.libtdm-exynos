@@ -280,6 +280,7 @@ tdm_exynos_init(tdm_display *dpy, tdm_error *error)
 	exynos_func_output.output_get_layers = exynos_output_get_layers;
 	exynos_func_output.output_set_property = exynos_output_set_property;
 	exynos_func_output.output_get_property = exynos_output_get_property;
+	exynos_func_output.output_get_cur_msc = exynos_output_get_cur_msc;
 	exynos_func_output.output_wait_vblank = exynos_output_wait_vblank;
 	exynos_func_output.output_set_vblank_handler = exynos_output_set_vblank_handler;
 	exynos_func_output.output_commit = exynos_output_commit;
@@ -351,9 +352,9 @@ tdm_exynos_init(tdm_display *dpy, tdm_error *error)
 
 	drmAddUserHandler(exynos_data->drm_fd, _tdm_exynos_drm_user_handler);
 
-	if (drmSetClientCap(exynos_data->drm_fd, DRM_CLIENT_CAP_UNIVERSAL_PLANES,
-	                    1) < 0)
-		TDM_WRN("Set DRM_CLIENT_CAP_UNIVERSAL_PLANES failed");
+	//if (drmSetClientCap(exynos_data->drm_fd, DRM_CLIENT_CAP_UNIVERSAL_PLANES,
+	//                    1) < 0)
+	//	TDM_WRN("Set DRM_CLIENT_CAP_UNIVERSAL_PLANES failed");
 
 	exynos_data->mode_res = drmModeGetResources(exynos_data->drm_fd);
 	if (!exynos_data->mode_res) {

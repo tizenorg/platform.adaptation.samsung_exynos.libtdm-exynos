@@ -592,6 +592,27 @@ exynos_output_get_property(tdm_output *output, unsigned int id,
 }
 
 tdm_error
+exynos_output_get_cur_msc(tdm_output *output, uint *msc)
+{
+	tdm_exynos_output_data *output_data = output;
+	tdm_exynos_data *exynos_data;
+	tdm_error ret;
+
+	RETURN_VAL_IF_FAIL(output_data, TDM_ERROR_INVALID_PARAMETER);
+
+	exynos_data = output_data->exynos_data;
+
+	ret = _tdm_exynos_output_get_cur_msc(exynos_data->drm_fd, output_data->pipe,
+	                                     msc);
+	if (ret != TDM_ERROR_NONE)
+		goto failed_vblank;
+
+	return TDM_ERROR_NONE;
+failed_vblank:
+	return ret;
+}
+
+tdm_error
 exynos_output_wait_vblank(tdm_output *output, int interval, int sync,
                           void *user_data)
 {

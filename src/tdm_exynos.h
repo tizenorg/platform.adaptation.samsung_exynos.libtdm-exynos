@@ -40,6 +40,7 @@ tdm_error    exynos_output_get_capability(tdm_output *output, tdm_caps_output *c
 tdm_layer**  exynos_output_get_layers(tdm_output *output, int *count, tdm_error *error);
 tdm_error    exynos_output_set_property(tdm_output *output, unsigned int id, tdm_value value);
 tdm_error    exynos_output_get_property(tdm_output *output, unsigned int id, tdm_value *value);
+tdm_error    exynos_output_get_cur_msc(tdm_output *output, uint *msc);
 tdm_error    exynos_output_wait_vblank(tdm_output *output, int interval, int sync, void *user_data);
 tdm_error    exynos_output_set_vblank_handler(tdm_output *output, tdm_output_vblank_handler func);
 tdm_error    exynos_output_commit(tdm_output *output, int sync, void *user_data);
