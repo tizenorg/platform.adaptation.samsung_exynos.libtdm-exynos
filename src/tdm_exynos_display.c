@@ -69,7 +69,8 @@ _tdm_exynos_display_create_layer_list_type(tdm_exynos_data *exynos_data)
 			layer_data->zpos = 1;
 		} else if (type == DRM_PLANE_TYPE_PRIMARY) {
 			layer_data->capabilities = TDM_LAYER_CAPABILITY_PRIMARY |
-			                           TDM_LAYER_CAPABILITY_GRAPHIC;
+			                           TDM_LAYER_CAPABILITY_GRAPHIC |
+			                           TDM_LAYER_CAPABILITY_RESEVED_MEMORY;
 			layer_data->zpos = 0;
 			output_data->primary_layer = layer_data;
 		} else {
@@ -161,7 +162,8 @@ _tdm_exynos_display_create_layer_list_immutable_zpos(tdm_exynos_data
 			                           TDM_LAYER_CAPABILITY_GRAPHIC;
 		else if (type == DRM_PLANE_TYPE_PRIMARY) {
 			layer_data->capabilities = TDM_LAYER_CAPABILITY_PRIMARY |
-			                           TDM_LAYER_CAPABILITY_GRAPHIC;
+			                           TDM_LAYER_CAPABILITY_GRAPHIC |
+			                           TDM_LAYER_CAPABILITY_RESEVED_MEMORY;
 			output_data->primary_layer = layer_data;
 		} else {
 			drmModeFreePlane(plane);
@@ -239,7 +241,8 @@ _tdm_exynos_display_create_layer_list_not_fixed(tdm_exynos_data *exynos_data)
 		layer_data->zpos = i % 2;
 		if (layer_data->zpos == 0) {
 			layer_data->capabilities = TDM_LAYER_CAPABILITY_PRIMARY |
-			                           TDM_LAYER_CAPABILITY_GRAPHIC;
+			                           TDM_LAYER_CAPABILITY_GRAPHIC |
+			                           TDM_LAYER_CAPABILITY_RESEVED_MEMORY;
 			output_data->primary_layer = layer_data;
 		} else {
 			tdm_error ret;
