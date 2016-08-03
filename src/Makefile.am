@@ -1,16 +1,16 @@
 AM_CFLAGS = \
-	$(TDM_EXYNOS_CFLAGS) \
+	$(TDM_BACKEND_ANDROID_CFLAGS) \
 	-I$(top_srcdir)/src
 
-libtdm_exynos_la_LTLIBRARIES = libtdm-exynos.la
-libtdm_exynos_ladir = $(TDM_MODULE_PATH)
-libtdm_exynos_la_LDFLAGS = -module -avoid-version
-libtdm_exynos_la_LIBADD = $(TDM_EXYNOS_LIBS) -ldl
+libtdm_android_la_LTLIBRARIES = libtdm-android.la
+libtdm_android_ladir = $(TDM_MODULE_PATH)
+libtdm_android_la_LDFLAGS = -module -avoid-version
+libtdm_android_la_LIBADD = $(TDM_BACKEND_ANDROID_LIBS) -ldl
 
-libtdm_exynos_la_SOURCES = \
-	tdm_exynos_format.c \
-	tdm_exynos_display.c \
-	tdm_exynos_output.c \
-	tdm_exynos_layer.c \
-	tdm_exynos_pp.c \
-	tdm_exynos.c
+libtdm_android_la_SOURCES = \
+	tdm_android_format.c \
+	tdm_android_display.c \
+	tdm_android_output.c \
+	tdm_android_layer.c \
+	tdm_android_pp.c \
+	tdm_android.c
